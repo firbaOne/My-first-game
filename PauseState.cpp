@@ -34,12 +34,7 @@ void PauseState::enter()
 
     OgreFramework::getSingletonPtr()->m_pViewport->setCamera(m_pCamera);
 
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->destroyAllWidgets();
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->showCursor();
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->createButton(OgreBites::TL_CENTER, "BackToGameBtn", "Return to GameState", 250);
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->createButton(OgreBites::TL_CENTER, "BackToMenuBtn", "Return to Menu", 250);
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->createButton(OgreBites::TL_CENTER, "ExitBtn", "Exit AdvancedOgreFramework", 250);
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->createLabel(OgreBites::TL_TOP, "PauseLbl", "Pause mode", 250);
+    
 
     m_bQuit = false;
 
@@ -61,10 +56,6 @@ void PauseState::exit()
     m_pSceneMgr->destroyCamera(m_pCamera);
     if(m_pSceneMgr)
         OgreFramework::getSingletonPtr()->m_pRoot->destroySceneManager(m_pSceneMgr);
-
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->clearAllTrays();
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->destroyAllWidgets();
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->setListener(0);
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -95,7 +86,6 @@ bool PauseState::keyReleased(const OIS::KeyEvent &keyEventRef)
 
 bool PauseState::mouseMoved(const OIS::MouseEvent &evt)
 {
-    if(OgreFramework::getSingletonPtr()->m_pTrayMgr->injectMouseMove(evt)) return true;
     return true;
 }
 
@@ -103,7 +93,6 @@ bool PauseState::mouseMoved(const OIS::MouseEvent &evt)
 
 bool PauseState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 {
-    if(OgreFramework::getSingletonPtr()->m_pTrayMgr->injectMouseDown(evt, id)) return true;
     return true;
 }
 
@@ -111,7 +100,6 @@ bool PauseState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 
 bool PauseState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 {
-    if(OgreFramework::getSingletonPtr()->m_pTrayMgr->injectMouseUp(evt, id)) return true;
     return true;
 }
 
@@ -120,8 +108,7 @@ bool PauseState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id
 void PauseState::update(double timeSinceLastFrame)
 {
     m_FrameEvent.timeSinceLastFrame = timeSinceLastFrame;
-    OgreFramework::getSingletonPtr()->m_pTrayMgr->frameRenderingQueued(m_FrameEvent);
-
+    
     if(m_bQuit == true)
     {
         popAppState();
@@ -131,18 +118,6 @@ void PauseState::update(double timeSinceLastFrame)
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
-void PauseState::buttonHit(OgreBites::Button *button)
-{
-    if(button->getName() == "ExitBtn")
-    {
-        OgreFramework::getSingletonPtr()->m_pTrayMgr->showYesNoDialog("Sure?", "Really leave?");
-        m_bQuestionActive = true;
-    }
-    else if(button->getName() == "BackToGameBtn")
-        m_bQuit = true;
-    else if(button->getName() == "BackToMenuBtn")
-        popAllAndPushAppState(findByName("MenuState"));
-}
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -151,7 +126,6 @@ void PauseState::yesNoDialogClosed(const Ogre::DisplayString& question, bool yes
     if(yesHit == true)
         shutdown();
     else
-        OgreFramework::getSingletonPtr()->m_pTrayMgr->closeDialog();
 
     m_bQuestionActive = false;
 }

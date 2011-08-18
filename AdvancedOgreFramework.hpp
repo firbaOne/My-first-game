@@ -35,7 +35,7 @@ public:
 	OIS::Keyboard*				m_pKeyboard;
 	OIS::Mouse*					m_pMouse;
 
-    OgreBites::SdkTrayManager*	m_pTrayMgr;
+
 
 private:
 	OgreFramework(const OgreFramework&);
