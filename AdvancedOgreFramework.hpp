@@ -25,15 +25,15 @@ public:
 	bool mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
 	bool mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
 
-	Ogre::Root*					m_pRoot;
-	Ogre::RenderWindow*			m_pRenderWnd;
-	Ogre::Viewport*				m_pViewport;
-	Ogre::Log*					m_pLog;
-	Ogre::Timer*				m_pTimer;
+	Ogre::Root*					mRoot;
+	Ogre::RenderWindow*			mRenderWnd;
+	Ogre::Viewport*				mViewport;
+	Ogre::Log*					mLog;
+	Ogre::Timer*				mTimer;
 
-	OIS::InputManager*			m_pInputMgr;
-	OIS::Keyboard*				m_pKeyboard;
-	OIS::Mouse*					m_pMouse;
+	OIS::InputManager*			mInputMgr;
+	OIS::Keyboard*				mKeyboard;
+	OIS::Mouse*					mMouse;
 
 
 

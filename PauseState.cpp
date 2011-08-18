@@ -19,20 +19,20 @@ PauseState::PauseState()
 
 void PauseState::enter()
 {
-    OgreFramework::getSingletonPtr()->m_pLog->logMessage("Entering PauseState...");
+    OgreFramework::getSingletonPtr()->mLog->logMessage("Entering PauseState...");
 
-    m_pSceneMgr = OgreFramework::getSingletonPtr()->m_pRoot->createSceneManager(ST_GENERIC, "PauseSceneMgr");
-    m_pSceneMgr->setAmbientLight(Ogre::ColourValue(0.7f, 0.7f, 0.7f));
+    mSceneMgr = OgreFramework::getSingletonPtr()->mRoot->createSceneManager(ST_GENERIC, "PauseSceneMgr");
+    mSceneMgr->setAmbientLight(Ogre::ColourValue(0.7f, 0.7f, 0.7f));
 
-    m_pCamera = m_pSceneMgr->createCamera("PauseCam");
-    m_pCamera->setPosition(Vector3(0, 25, -50));
-    m_pCamera->lookAt(Vector3(0, 0, 0));
-    m_pCamera->setNearClipDistance(1);
+    mCamera = mSceneMgr->createCamera("PauseCam");
+    mCamera->setPosition(Vector3(0, 25, -50));
+    mCamera->lookAt(Vector3(0, 0, 0));
+    mCamera->setNearClipDistance(1);
 
-    m_pCamera->setAspectRatio(Real(OgreFramework::getSingletonPtr()->m_pViewport->getActualWidth()) /
-        Real(OgreFramework::getSingletonPtr()->m_pViewport->getActualHeight()));
+    mCamera->setAspectRatio(Real(OgreFramework::getSingletonPtr()->mViewport->getActualWidth()) /
+        Real(OgreFramework::getSingletonPtr()->mViewport->getActualHeight()));
 
-    OgreFramework::getSingletonPtr()->m_pViewport->setCamera(m_pCamera);
+    OgreFramework::getSingletonPtr()->mViewport->setCamera(mCamera);
 
     
 
@@ -51,18 +51,18 @@ void PauseState::createScene()
 
 void PauseState::exit()
 {
-    OgreFramework::getSingletonPtr()->m_pLog->logMessage("Leaving PauseState...");
+    OgreFramework::getSingletonPtr()->mLog->logMessage("Leaving PauseState...");
 
-    m_pSceneMgr->destroyCamera(m_pCamera);
-    if(m_pSceneMgr)
-        OgreFramework::getSingletonPtr()->m_pRoot->destroySceneManager(m_pSceneMgr);
+    mSceneMgr->destroyCamera(mCamera);
+    if(mSceneMgr)
+        OgreFramework::getSingletonPtr()->mRoot->destroySceneManager(mSceneMgr);
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 bool PauseState::keyPressed(const OIS::KeyEvent &keyEventRef)
 {
-    if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_ESCAPE) && !m_bQuestionActive)
+    if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_ESCAPE) && !m_bQuestionActive)
     {
         m_bQuit = true;
         return true;

@@ -28,11 +28,14 @@ public:
 	bool mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
 
 
-
 	void update(double timeSinceLastFrame);
-
+	/* CEGUI events handler functions */
+	bool quit(const CEGUI::EventArgs &e);
+	bool showOptions(const CEGUI::EventArgs &e);
+	bool showGraphicsOptions(const CEGUI::EventArgs &e);
 private:
 	bool m_bQuit;
+	CEGUI::OgreRenderer *mRenderer;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

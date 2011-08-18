@@ -52,10 +52,10 @@ public:
 	void update(double timeSinceLastFrame);
 
 private:
-	Ogre::SceneNode*			m_pOgreHeadNode;
-	Ogre::Entity*				m_pOgreHeadEntity;
-	Ogre::MaterialPtr			m_pOgreHeadMat;
-	Ogre::MaterialPtr			m_pOgreHeadMatHigh;
+	Ogre::SceneNode*			mOgreHeadNode;
+	Ogre::Entity*				mOgreHeadEntity;
+	Ogre::MaterialPtr			mOgreHeadMat;
+	Ogre::MaterialPtr			mOgreHeadMatHigh;
 
 
 	bool						m_bQuit;
@@ -66,9 +66,9 @@ private:
 	float						m_MoveScale;
 	Ogre::Degree				m_RotScale;
 
-	Ogre::RaySceneQuery*		m_pRSQ;
-	Ogre::SceneNode*			m_pCurrentObject;
-	Ogre::Entity*				m_pCurrentEntity;
+	Ogre::RaySceneQuery*		mRSQ;
+	Ogre::SceneNode*			mCurrentObject;
+	Ogre::Entity*				mCurrentEntity;
 	bool						m_bLMouseDown, m_bRMouseDown;
 	bool						m_bSettingsMode;
 };

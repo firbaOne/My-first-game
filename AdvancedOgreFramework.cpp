@@ -14,24 +14,24 @@ template<> OgreFramework* Ogre::Singleton<OgreFramework>::ms_Singleton = 0;
 
 OgreFramework::OgreFramework()
 {
-    m_pRoot				= 0;
-    m_pRenderWnd		= 0;
-    m_pViewport			= 0;
-    m_pLog				= 0;
-    m_pTimer			= 0;
+    mRoot				= 0;
+    mRenderWnd		= 0;
+    mViewport			= 0;
+    mLog				= 0;
+    mTimer			= 0;
 
-    m_pInputMgr			= 0;
-    m_pKeyboard			= 0;
-    m_pMouse			= 0;
+    mInputMgr			= 0;
+    mKeyboard			= 0;
+    mMouse			= 0;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 OgreFramework::~OgreFramework()
 {
-    OgreFramework::getSingletonPtr()->m_pLog->logMessage("Shutdown OGRE...");
-    if(m_pInputMgr)		OIS::InputManager::destroyInputSystem(m_pInputMgr);
-    if(m_pRoot)			delete m_pRoot;
+    OgreFramework::getSingletonPtr()->mLog->logMessage("Shutdown OGRE...");
+    if(mInputMgr)		OIS::InputManager::destroyInputSystem(mInputMgr);
+    if(mRoot)			delete mRoot;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -40,47 +40,47 @@ bool OgreFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListen
 {
     Ogre::LogManager* logMgr = new Ogre::LogManager();
 
-    m_pLog = Ogre::LogManager::getSingleton().createLog("OgreLogfile.log", true, true, false);
-    m_pLog->setDebugOutputEnabled(true);
+    mLog = Ogre::LogManager::getSingleton().createLog("OgreLogfile.log", true, true, false);
+    mLog->setDebugOutputEnabled(true);
 
-    m_pRoot = new Ogre::Root();
+    mRoot = new Ogre::Root("plugins.cfg");
 
-    if(!m_pRoot->showConfigDialog())
+    if(!mRoot->showConfigDialog())
         return false;
-	/*Ogre::RenderSystemList renderList= m_pRoot->getAvailableRenderers();
+	/*Ogre::RenderSystemList renderList= mRoot->getAvailableRenderers();
 	Ogre::RenderSystem * mRenderer = renderList[0];
-	m_pRoot->setRenderSystem(mRenderer);*/
-	
-    m_pRenderWnd = m_pRoot->initialise(true, wndTitle);
+	mRoot->setRenderSystem(mRenderer);*/
 
-    m_pViewport = m_pRenderWnd->addViewport(0);
-    m_pViewport->setBackgroundColour(ColourValue(0.5f, 0.5f, 0.5f, 1.0f));
+    mRenderWnd = mRoot->initialise(true, wndTitle);
 
-    m_pViewport->setCamera(0);
+    mViewport = mRenderWnd->addViewport(0);
+    mViewport->setBackgroundColour(ColourValue(0.5f, 0.5f, 0.5f, 1.0f));
+
+    mViewport->setCamera(0);
 
     unsigned long hWnd = 0;
     OIS::ParamList paramList;
-    m_pRenderWnd->getCustomAttribute("WINDOW", &hWnd);
+    mRenderWnd->getCustomAttribute("WINDOW", &hWnd);
 
     paramList.insert(OIS::ParamList::value_type("WINDOW", Ogre::StringConverter::toString(hWnd)));
 
-    m_pInputMgr = OIS::InputManager::createInputSystem(paramList);
+    mInputMgr = OIS::InputManager::createInputSystem(paramList);
 
-    m_pKeyboard = static_cast<OIS::Keyboard*>(m_pInputMgr->createInputObject(OIS::OISKeyboard, true));
-    m_pMouse = static_cast<OIS::Mouse*>(m_pInputMgr->createInputObject(OIS::OISMouse, true));
+    mKeyboard = static_cast<OIS::Keyboard*>(mInputMgr->createInputObject(OIS::OISKeyboard, true));
+    mMouse = static_cast<OIS::Mouse*>(mInputMgr->createInputObject(OIS::OISMouse, true));
 
-    m_pMouse->getMouseState().height = m_pRenderWnd->getHeight();
-    m_pMouse->getMouseState().width	 = m_pRenderWnd->getWidth();
+    mMouse->getMouseState().height = mRenderWnd->getHeight();
+    mMouse->getMouseState().width	 = mRenderWnd->getWidth();
 
     if(pKeyListener == 0)
-        m_pKeyboard->setEventCallback(this);
+        mKeyboard->setEventCallback(this);
     else
-        m_pKeyboard->setEventCallback(pKeyListener);
+        mKeyboard->setEventCallback(pKeyListener);
 
     if(pMouseListener == 0)
-        m_pMouse->setEventCallback(this);
+        mMouse->setEventCallback(this);
     else
-        m_pMouse->setEventCallback(pMouseListener);
+        mMouse->setEventCallback(pMouseListener);
 
     Ogre::String secName, typeName, archName;
     Ogre::ConfigFile cf;
@@ -104,10 +104,10 @@ bool OgreFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListen
 
   
 
-    m_pTimer = new Ogre::Timer();
-    m_pTimer->reset();
+    mTimer = new Ogre::Timer();
+    mTimer->reset();
 
-    m_pRenderWnd->setActive(true);
+    mRenderWnd->setActive(true);
 
     return true;
 }
@@ -116,16 +116,19 @@ bool OgreFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListen
 
 bool OgreFramework::keyPressed(const OIS::KeyEvent &keyEventRef)
 {
-    if(m_pKeyboard->isKeyDown(OIS::KC_SYSRQ))
+    if(mKeyboard->isKeyDown(OIS::KC_SYSRQ))
     {
-        m_pRenderWnd->writeContentsToTimestampedFile("AOF_Screenshot_", ".jpg");
+        mRenderWnd->writeContentsToTimestampedFile("AOF_Screenshot_", ".jpg");
         return true;
     }
 
-    if(m_pKeyboard->isKeyDown(OIS::KC_O))
+    if(mKeyboard->isKeyDown(OIS::KC_O))
     {
        
     }
+	CEGUI::System &sys = CEGUI::System::getSingleton();
+	sys.injectKeyDown(keyEventRef.key);
+	sys.injectChar(keyEventRef.text);
 
     return true;
 }
@@ -134,27 +137,33 @@ bool OgreFramework::keyPressed(const OIS::KeyEvent &keyEventRef)
 
 bool OgreFramework::keyReleased(const OIS::KeyEvent &keyEventRef)
 {
-    return true;
+    CEGUI::System::getSingleton().injectKeyUp(keyEventRef.key);
+	return true;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 bool OgreFramework::mouseMoved(const OIS::MouseEvent &evt)
 {
-    return true;
+    
+	
+	return true;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 bool OgreFramework::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 {
-    return true;
+   
+
+	return true;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 bool OgreFramework::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 {
+	
     return true;
 }
 

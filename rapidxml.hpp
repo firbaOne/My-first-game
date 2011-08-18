@@ -552,7 +552,7 @@ namespace rapidxml
         //! \param ff Free function, or 0 to restore default function
         void set_allocator(alloc_func *af, free_func *ff)
         {
-            assert(m_begin == m_static_memory && m_ptr == align(m_begin));    // Verify that no memory is allocated yet
+            assert(m_begin == m_static_memory && mtr == align(m_begin));    // Verify that no memory is allocated yet
             m_alloc_func = af;
             m_free_func = ff;
         }
@@ -567,7 +567,7 @@ namespace rapidxml
         void init()
         {
             m_begin = m_static_memory;
-            m_ptr = align(m_begin);
+            mtr = align(m_begin);
             m_end = m_static_memory + sizeof(m_static_memory);
         }
         
@@ -600,7 +600,7 @@ namespace rapidxml
         void *allocate_aligned(std::size_t size)
         {
             // Calculate aligned pointer
-            char *result = align(m_ptr);
+            char *result = align(mtr);
 
             // If not enough memory left in current pool, allocate a new pool
             if (result + size > m_end)
@@ -619,20 +619,20 @@ namespace rapidxml
                 header *new_header = reinterpret_cast<header *>(pool);
                 new_header->previous_begin = m_begin;
                 m_begin = raw_memory;
-                m_ptr = pool + sizeof(header);
+                mtr = pool + sizeof(header);
                 m_end = raw_memory + alloc_size;
 
                 // Calculate aligned pointer again using new pool
-                result = align(m_ptr);
+                result = align(mtr);
             }
 
             // Update pool and return aligned pointer
-            m_ptr = result + size;
+            mtr = result + size;
             return result;
         }
 
         char *m_begin;                                      // Start of raw memory making up current pool
-        char *m_ptr;                                        // First free byte in current pool
+        char *mtr;                                        // First free byte in current pool
         char *m_end;                                        // One past last available byte in current pool
         char m_static_memory[RAPIDXML_STATIC_POOL_SIZE];    // Static raw memory
         alloc_func *m_alloc_func;                           // Allocator function, or 0 if default is to be used
@@ -658,7 +658,7 @@ namespace rapidxml
         xml_base()
             : m_name(0)
             , m_value(0)
-            , m_parent(0)
+            , marent(0)
         {
         }
 
@@ -770,7 +770,7 @@ namespace rapidxml
         //! \return Pointer to parent node, or 0 if there is no parent.
         xml_node<Ch> *parent() const
         {
-            return m_parent;
+            return marent;
         }
 
     protected:
@@ -786,7 +786,7 @@ namespace rapidxml
         Ch *m_value;                        // Value of node, or 0 if no value
         std::size_t m_name_size;            // Length of node name, or undefined of no name
         std::size_t m_value_size;           // Length of node value, or undefined if no value
-        xml_node<Ch> *m_parent;             // Pointer to parent node, or 0 if none
+        xml_node<Ch> *marent;             // Pointer to parent node, or 0 if none
 
     };
 
@@ -840,13 +840,13 @@ namespace rapidxml
             {
                 if (name_size == 0)
                     name_size = internal::measure(name);
-                for (xml_attribute<Ch> *attribute = m_prev_attribute; attribute; attribute = attribute->m_prev_attribute)
+                for (xml_attribute<Ch> *attribute = mrev_attribute; attribute; attribute = attribute->mrev_attribute)
                     if (internal::compare(attribute->name(), attribute->name_size(), name, name_size, case_sensitive))
                         return attribute;
                 return 0;
             }
             else
-                return this->m_parent ? m_prev_attribute : 0;
+                return this->marent ? mrev_attribute : 0;
         }
 
         //! Gets next attribute, optionally matching attribute name. 
@@ -866,12 +866,12 @@ namespace rapidxml
                 return 0;
             }
             else
-                return this->m_parent ? m_next_attribute : 0;
+                return this->marent ? m_next_attribute : 0;
         }
 
     private:
 
-        xml_attribute<Ch> *m_prev_attribute;        // Pointer to previous sibling of attribute, or 0 if none; only valid if parent is non-zero
+        xml_attribute<Ch> *mrev_attribute;        // Pointer to previous sibling of attribute, or 0 if none; only valid if parent is non-zero
         xml_attribute<Ch> *m_next_attribute;        // Pointer to next sibling of attribute, or 0 if none; only valid if parent is non-zero
     
     };
@@ -981,18 +981,18 @@ namespace rapidxml
         //! \return Pointer to found sibling, or 0 if not found.
         xml_node<Ch> *previous_sibling(const Ch *name = 0, std::size_t name_size = 0, bool case_sensitive = true) const
         {
-            assert(this->m_parent);     // Cannot query for siblings if node has no parent
+            assert(this->marent);     // Cannot query for siblings if node has no parent
             if (name)
             {
                 if (name_size == 0)
                     name_size = internal::measure(name);
-                for (xml_node<Ch> *sibling = m_prev_sibling; sibling; sibling = sibling->m_prev_sibling)
+                for (xml_node<Ch> *sibling = mrev_sibling; sibling; sibling = sibling->mrev_sibling)
                     if (internal::compare(sibling->name(), sibling->name_size(), name, name_size, case_sensitive))
                         return sibling;
                 return 0;
             }
             else
-                return m_prev_sibling;
+                return mrev_sibling;
         }
 
         //! Gets next sibling node, optionally matching node name. 
@@ -1004,7 +1004,7 @@ namespace rapidxml
         //! \return Pointer to found sibling, or 0 if not found.
         xml_node<Ch> *next_sibling(const Ch *name = 0, std::size_t name_size = 0, bool case_sensitive = true) const
         {
-            assert(this->m_parent);     // Cannot query for siblings if node has no parent
+            assert(this->marent);     // Cannot query for siblings if node has no parent
             if (name)
             {
                 if (name_size == 0)
@@ -1049,7 +1049,7 @@ namespace rapidxml
             {
                 if (name_size == 0)
                     name_size = internal::measure(name);
-                for (xml_attribute<Ch> *attribute = m_last_attribute; attribute; attribute = attribute->m_prev_attribute)
+                for (xml_attribute<Ch> *attribute = m_last_attribute; attribute; attribute = attribute->mrev_attribute)
                     if (internal::compare(attribute->name(), attribute->name_size(), name, name_size, case_sensitive))
                         return attribute;
                 return 0;
@@ -1080,7 +1080,7 @@ namespace rapidxml
             if (first_node())
             {
                 child->m_next_sibling = m_first_node;
-                m_first_node->m_prev_sibling = child;
+                m_first_node->mrev_sibling = child;
             }
             else
             {
@@ -1088,8 +1088,8 @@ namespace rapidxml
                 m_last_node = child;
             }
             m_first_node = child;
-            child->m_parent = this;
-            child->m_prev_sibling = 0;
+            child->marent = this;
+            child->mrev_sibling = 0;
         }
 
         //! Appends a new child node. 
@@ -1100,16 +1100,16 @@ namespace rapidxml
             assert(child && !child->parent() && child->type() != node_document);
             if (first_node())
             {
-                child->m_prev_sibling = m_last_node;
+                child->mrev_sibling = m_last_node;
                 m_last_node->m_next_sibling = child;
             }
             else
             {
-                child->m_prev_sibling = 0;
+                child->mrev_sibling = 0;
                 m_first_node = child;
             }
             m_last_node = child;
-            child->m_parent = this;
+            child->marent = this;
             child->m_next_sibling = 0;
         }
 
@@ -1127,11 +1127,11 @@ namespace rapidxml
                 append_node(child);
             else
             {
-                child->m_prev_sibling = where->m_prev_sibling;
+                child->mrev_sibling = where->mrev_sibling;
                 child->m_next_sibling = where;
-                where->m_prev_sibling->m_next_sibling = child;
-                where->m_prev_sibling = child;
-                child->m_parent = this;
+                where->mrev_sibling->m_next_sibling = child;
+                where->mrev_sibling = child;
+                child->marent = this;
             }
         }
 
@@ -1144,10 +1144,10 @@ namespace rapidxml
             xml_node<Ch> *child = m_first_node;
             m_first_node = child->m_next_sibling;
             if (child->m_next_sibling)
-                child->m_next_sibling->m_prev_sibling = 0;
+                child->m_next_sibling->mrev_sibling = 0;
             else
                 m_last_node = 0;
-            child->m_parent = 0;
+            child->marent = 0;
         }
 
         //! Removes last child of the node. 
@@ -1157,14 +1157,14 @@ namespace rapidxml
         {
             assert(first_node());
             xml_node<Ch> *child = m_last_node;
-            if (child->m_prev_sibling)
+            if (child->mrev_sibling)
             {
-                m_last_node = child->m_prev_sibling;
-                child->m_prev_sibling->m_next_sibling = 0;
+                m_last_node = child->mrev_sibling;
+                child->mrev_sibling->m_next_sibling = 0;
             }
             else
                 m_first_node = 0;
-            child->m_parent = 0;
+            child->marent = 0;
         }
 
         //! Removes specified child from the node
@@ -1179,9 +1179,9 @@ namespace rapidxml
                 remove_last_node();
             else
             {
-                where->m_prev_sibling->m_next_sibling = where->m_next_sibling;
-                where->m_next_sibling->m_prev_sibling = where->m_prev_sibling;
-                where->m_parent = 0;
+                where->mrev_sibling->m_next_sibling = where->m_next_sibling;
+                where->m_next_sibling->mrev_sibling = where->mrev_sibling;
+                where->marent = 0;
             }
         }
 
@@ -1189,7 +1189,7 @@ namespace rapidxml
         void remove_all_nodes()
         {
             for (xml_node<Ch> *node = first_node(); node; node = node->m_next_sibling)
-                node->m_parent = 0;
+                node->marent = 0;
             m_first_node = 0;
         }
 
@@ -1201,7 +1201,7 @@ namespace rapidxml
             if (first_attribute())
             {
                 attribute->m_next_attribute = m_first_attribute;
-                m_first_attribute->m_prev_attribute = attribute;
+                m_first_attribute->mrev_attribute = attribute;
             }
             else
             {
@@ -1209,8 +1209,8 @@ namespace rapidxml
                 m_last_attribute = attribute;
             }
             m_first_attribute = attribute;
-            attribute->m_parent = this;
-            attribute->m_prev_attribute = 0;
+            attribute->marent = this;
+            attribute->mrev_attribute = 0;
         }
 
         //! Appends a new attribute to the node.
@@ -1220,16 +1220,16 @@ namespace rapidxml
             assert(attribute && !attribute->parent());
             if (first_attribute())
             {
-                attribute->m_prev_attribute = m_last_attribute;
+                attribute->mrev_attribute = m_last_attribute;
                 m_last_attribute->m_next_attribute = attribute;
             }
             else
             {
-                attribute->m_prev_attribute = 0;
+                attribute->mrev_attribute = 0;
                 m_first_attribute = attribute;
             }
             m_last_attribute = attribute;
-            attribute->m_parent = this;
+            attribute->marent = this;
             attribute->m_next_attribute = 0;
         }
 
@@ -1247,11 +1247,11 @@ namespace rapidxml
                 append_attribute(attribute);
             else
             {
-                attribute->m_prev_attribute = where->m_prev_attribute;
+                attribute->mrev_attribute = where->mrev_attribute;
                 attribute->m_next_attribute = where;
-                where->m_prev_attribute->m_next_attribute = attribute;
-                where->m_prev_attribute = attribute;
-                attribute->m_parent = this;
+                where->mrev_attribute->m_next_attribute = attribute;
+                where->mrev_attribute = attribute;
+                attribute->marent = this;
             }
         }
 
@@ -1264,11 +1264,11 @@ namespace rapidxml
             xml_attribute<Ch> *attribute = m_first_attribute;
             if (attribute->m_next_attribute)
             {
-                attribute->m_next_attribute->m_prev_attribute = 0;
+                attribute->m_next_attribute->mrev_attribute = 0;
             }
             else
                 m_last_attribute = 0;
-            attribute->m_parent = 0;
+            attribute->marent = 0;
             m_first_attribute = attribute->m_next_attribute;
         }
 
@@ -1279,14 +1279,14 @@ namespace rapidxml
         {
             assert(first_attribute());
             xml_attribute<Ch> *attribute = m_last_attribute;
-            if (attribute->m_prev_attribute)
+            if (attribute->mrev_attribute)
             {
-                attribute->m_prev_attribute->m_next_attribute = 0;
-                m_last_attribute = attribute->m_prev_attribute;
+                attribute->mrev_attribute->m_next_attribute = 0;
+                m_last_attribute = attribute->mrev_attribute;
             }
             else
                 m_first_attribute = 0;
-            attribute->m_parent = 0;
+            attribute->marent = 0;
         }
 
         //! Removes specified attribute from node.
@@ -1300,9 +1300,9 @@ namespace rapidxml
                 remove_last_attribute();
             else
             {
-                where->m_prev_attribute->m_next_attribute = where->m_next_attribute;
-                where->m_next_attribute->m_prev_attribute = where->m_prev_attribute;
-                where->m_parent = 0;
+                where->mrev_attribute->m_next_attribute = where->m_next_attribute;
+                where->m_next_attribute->mrev_attribute = where->mrev_attribute;
+                where->marent = 0;
             }
         }
 
@@ -1310,7 +1310,7 @@ namespace rapidxml
         void remove_all_attributes()
         {
             for (xml_attribute<Ch> *attribute = first_attribute(); attribute; attribute = attribute->m_next_attribute)
-                attribute->m_parent = 0;
+                attribute->marent = 0;
             m_first_attribute = 0;
         }
         
@@ -1340,8 +1340,8 @@ namespace rapidxml
         xml_node<Ch> *m_last_node;              // Pointer to last child node, or 0 if none; this value is only valid if m_first_node is non-zero
         xml_attribute<Ch> *m_first_attribute;   // Pointer to first attribute of node, or 0 if none; always valid
         xml_attribute<Ch> *m_last_attribute;    // Pointer to last attribute of node, or 0 if none; this value is only valid if m_first_attribute is non-zero
-        xml_node<Ch> *m_prev_sibling;           // Pointer to previous sibling of node, or 0 if none; this value is only valid if m_parent is non-zero
-        xml_node<Ch> *m_next_sibling;           // Pointer to next sibling of node, or 0 if none; this value is only valid if m_parent is non-zero
+        xml_node<Ch> *mrev_sibling;           // Pointer to previous sibling of node, or 0 if none; this value is only valid if marent is non-zero
+        xml_node<Ch> *m_next_sibling;           // Pointer to next sibling of node, or 0 if none; this value is only valid if marent is non-zero
 
     };
 

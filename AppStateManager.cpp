@@ -75,23 +75,23 @@ void AppStateManager::start(AppState* state)
 
 	while(!m_bShutdown)
 	{
-		if(OgreFramework::getSingletonPtr()->m_pRenderWnd->isClosed())m_bShutdown = true;
+		if(OgreFramework::getSingletonPtr()->mRenderWnd->isClosed())m_bShutdown = true;
 
 		Ogre::WindowEventUtilities::messagePump();
 
-		if(OgreFramework::getSingletonPtr()->m_pRenderWnd->isActive())
+		if(OgreFramework::getSingletonPtr()->mRenderWnd->isActive())
 		{
-			startTime = OgreFramework::getSingletonPtr()->m_pTimer->getMillisecondsCPU();
+			startTime = OgreFramework::getSingletonPtr()->mTimer->getMillisecondsCPU();
 
-			OgreFramework::getSingletonPtr()->m_pKeyboard->capture();
-			OgreFramework::getSingletonPtr()->m_pMouse->capture();
+			OgreFramework::getSingletonPtr()->mKeyboard->capture();
+			OgreFramework::getSingletonPtr()->mMouse->capture();
 
 			m_ActiveStateStack.back()->update(timeSinceLastFrame);
 
 			OgreFramework::getSingletonPtr()->updateOgre(timeSinceLastFrame);
-			OgreFramework::getSingletonPtr()->m_pRoot->renderOneFrame();
+			OgreFramework::getSingletonPtr()->mRoot->renderOneFrame();
 
-			timeSinceLastFrame = OgreFramework::getSingletonPtr()->m_pTimer->getMillisecondsCPU() - startTime;
+			timeSinceLastFrame = OgreFramework::getSingletonPtr()->mTimer->getMillisecondsCPU() - startTime;
 		}
 		else
 		{
@@ -103,7 +103,7 @@ void AppStateManager::start(AppState* state)
 		}
 	}
 
-	OgreFramework::getSingletonPtr()->m_pLog->logMessage("Main loop quit");
+	OgreFramework::getSingletonPtr()->mLog->logMessage("Main loop quit");
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -197,11 +197,11 @@ void AppStateManager::shutdown()
 
 void AppStateManager::init(AppState* state)
 {
-    OgreFramework::getSingletonPtr()->m_pKeyboard->setEventCallback(state);
-	OgreFramework::getSingletonPtr()->m_pMouse->setEventCallback(state);
+    OgreFramework::getSingletonPtr()->mKeyboard->setEventCallback(state);
+	OgreFramework::getSingletonPtr()->mMouse->setEventCallback(state);
    
 
-	OgreFramework::getSingletonPtr()->m_pRenderWnd->resetStatistics();
+	OgreFramework::getSingletonPtr()->mRenderWnd->resetStatistics();
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

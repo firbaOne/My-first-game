@@ -46,17 +46,17 @@ public:
 protected:
 	AppState(){};
 
-	AppState*	findByName(Ogre::String stateName){return m_pParent->findByName(stateName);}
-	void		changeAppState(AppState* state){m_pParent->changeAppState(state);}
-	bool		pushAppState(AppState* state){return m_pParent->pushAppState(state);}
-	void		popAppState(){m_pParent->popAppState();}
-	void		shutdown(){m_pParent->shutdown();}
-    void        popAllAndPushAppState(AppState* state){m_pParent->popAllAndPushAppState(state);}
+	AppState*	findByName(Ogre::String stateName){return mParent->findByName(stateName);}
+	void		changeAppState(AppState* state){mParent->changeAppState(state);}
+	bool		pushAppState(AppState* state){return mParent->pushAppState(state);}
+	void		popAppState(){mParent->popAppState();}
+	void		shutdown(){mParent->shutdown();}
+    void        popAllAndPushAppState(AppState* state){mParent->popAllAndPushAppState(state);}
 
-	AppStateListener*			m_pParent;
+	AppStateListener*			mParent;
 
-	Ogre::Camera*				m_pCamera;
-	Ogre::SceneManager*			m_pSceneMgr;
+	Ogre::Camera*				mCamera;
+	Ogre::SceneManager*			mSceneMgr;
     Ogre::FrameEvent            m_FrameEvent;
 };
 
@@ -66,7 +66,7 @@ protected:
 static void create(AppStateListener* parent, const Ogre::String name)	\
 {																		\
 	T* myAppState = new T();											\
-	myAppState->m_pParent = parent;										\
+	myAppState->mParent = parent;										\
 	parent->manageAppState(name, myAppState);							\
 }
 

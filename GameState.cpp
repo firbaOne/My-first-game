@@ -25,24 +25,24 @@ GameState::GameState()
 
 void GameState::enter()
 {
-    OgreFramework::getSingletonPtr()->m_pLog->logMessage("Entering GameState...");
+    OgreFramework::getSingletonPtr()->mLog->logMessage("Entering GameState...");
 
-    m_pSceneMgr = OgreFramework::getSingletonPtr()->m_pRoot->createSceneManager(ST_GENERIC, "GameSceneMgr");
-    m_pSceneMgr->setAmbientLight(Ogre::ColourValue(0.7f, 0.7f, 0.7f));
+    mSceneMgr = OgreFramework::getSingletonPtr()->mRoot->createSceneManager(ST_GENERIC, "GameSceneMgr");
+    mSceneMgr->setAmbientLight(Ogre::ColourValue(0.7f, 0.7f, 0.7f));
 
-    m_pRSQ = m_pSceneMgr->createRayQuery(Ray());
-    m_pRSQ->setQueryMask(OGRE_HEAD_MASK);
+    mRSQ = mSceneMgr->createRayQuery(Ray());
+    mRSQ->setQueryMask(OGRE_HEAD_MASK);
 
-    m_pCamera = m_pSceneMgr->createCamera("GameCamera");
-    m_pCamera->setPosition(Vector3(5, 60, 60));
-    m_pCamera->lookAt(Vector3(5, 20, 0));
-    m_pCamera->setNearClipDistance(5);
+    mCamera = mSceneMgr->createCamera("GameCamera");
+    mCamera->setPosition(Vector3(5, 60, 60));
+    mCamera->lookAt(Vector3(5, 20, 0));
+    mCamera->setNearClipDistance(5);
 
-    m_pCamera->setAspectRatio(Real(OgreFramework::getSingletonPtr()->m_pViewport->getActualWidth()) /
-        Real(OgreFramework::getSingletonPtr()->m_pViewport->getActualHeight()));
+    mCamera->setAspectRatio(Real(OgreFramework::getSingletonPtr()->mViewport->getActualWidth()) /
+        Real(OgreFramework::getSingletonPtr()->mViewport->getActualHeight()));
 
-    OgreFramework::getSingletonPtr()->m_pViewport->setCamera(m_pCamera);
-    m_pCurrentObject = 0;
+    OgreFramework::getSingletonPtr()->mViewport->setCamera(mCamera);
+    mCurrentObject = 0;
 
     buildGUI();
 
@@ -53,7 +53,7 @@ void GameState::enter()
 
 bool GameState::pause()
 {
-    OgreFramework::getSingletonPtr()->m_pLog->logMessage("Pausing GameState...");
+    OgreFramework::getSingletonPtr()->mLog->logMessage("Pausing GameState...");
 
     return true;
 }
@@ -62,11 +62,11 @@ bool GameState::pause()
 
 void GameState::resume()
 {
-    OgreFramework::getSingletonPtr()->m_pLog->logMessage("Resuming GameState...");
+    OgreFramework::getSingletonPtr()->mLog->logMessage("Resuming GameState...");
 
     buildGUI();
 
-    OgreFramework::getSingletonPtr()->m_pViewport->setCamera(m_pCamera);
+    OgreFramework::getSingletonPtr()->mViewport->setCamera(mCamera);
     m_bQuit = false;
 }
 
@@ -74,38 +74,38 @@ void GameState::resume()
 
 void GameState::exit()
 {
-    OgreFramework::getSingletonPtr()->m_pLog->logMessage("Leaving GameState...");
+    OgreFramework::getSingletonPtr()->mLog->logMessage("Leaving GameState...");
 
-    m_pSceneMgr->destroyCamera(m_pCamera);
-    m_pSceneMgr->destroyQuery(m_pRSQ);
-    if(m_pSceneMgr)
-        OgreFramework::getSingletonPtr()->m_pRoot->destroySceneManager(m_pSceneMgr);
+    mSceneMgr->destroyCamera(mCamera);
+    mSceneMgr->destroyQuery(mRSQ);
+    if(mSceneMgr)
+        OgreFramework::getSingletonPtr()->mRoot->destroySceneManager(mSceneMgr);
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 void GameState::createScene()
 {
-    m_pSceneMgr->createLight("Light")->setPosition(75,75,75);
+    mSceneMgr->createLight("Light")->setPosition(75,75,75);
 
     DotSceneLoader* pDotSceneLoader = new DotSceneLoader();
-    pDotSceneLoader->parseDotScene("CubeScene.xml", "General", m_pSceneMgr, m_pSceneMgr->getRootSceneNode());
+    pDotSceneLoader->parseDotScene("CubeScene.xml", "General", mSceneMgr, mSceneMgr->getRootSceneNode());
     delete pDotSceneLoader;
 
-    m_pSceneMgr->getEntity("Cube01")->setQueryFlags(CUBE_MASK);
-    m_pSceneMgr->getEntity("Cube02")->setQueryFlags(CUBE_MASK);
-    m_pSceneMgr->getEntity("Cube03")->setQueryFlags(CUBE_MASK);
+    mSceneMgr->getEntity("Cube01")->setQueryFlags(CUBE_MASK);
+    mSceneMgr->getEntity("Cube02")->setQueryFlags(CUBE_MASK);
+    mSceneMgr->getEntity("Cube03")->setQueryFlags(CUBE_MASK);
 
-    m_pOgreHeadEntity = m_pSceneMgr->createEntity("Cube", "ogrehead.mesh");
-    m_pOgreHeadEntity->setQueryFlags(OGRE_HEAD_MASK);
-    m_pOgreHeadNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("CubeNode");
-    m_pOgreHeadNode->attachObject(m_pOgreHeadEntity);
-    m_pOgreHeadNode->setPosition(Vector3(0, 0, -25));
+    mOgreHeadEntity = mSceneMgr->createEntity("Cube", "ogrehead.mesh");
+    mOgreHeadEntity->setQueryFlags(OGRE_HEAD_MASK);
+    mOgreHeadNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CubeNode");
+    mOgreHeadNode->attachObject(mOgreHeadEntity);
+    mOgreHeadNode->setPosition(Vector3(0, 0, -25));
 
-    m_pOgreHeadMat = m_pOgreHeadEntity->getSubEntity(1)->getMaterial();
-    m_pOgreHeadMatHigh = m_pOgreHeadMat->clone("OgreHeadMatHigh");
-    m_pOgreHeadMatHigh->getTechnique(0)->getPass(0)->setAmbient(1, 0, 0);
-    m_pOgreHeadMatHigh->getTechnique(0)->getPass(0)->setDiffuse(1, 0, 0, 0);
+    mOgreHeadMat = mOgreHeadEntity->getSubEntity(1)->getMaterial();
+    mOgreHeadMatHigh = mOgreHeadMat->clone("OgreHeadMatHigh");
+    mOgreHeadMatHigh->getTechnique(0)->getPass(0)->setAmbient(1, 0, 0);
+    mOgreHeadMatHigh->getTechnique(0)->getPass(0)->setDiffuse(1, 0, 0, 0);
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -114,40 +114,40 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 {
     if(m_bSettingsMode == true)
     {
-        if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_S))
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_S))
         {
             
            
         }
 
-        if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_W))
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_W))
         {
         }
     }
 
-    if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_ESCAPE))
+    if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_ESCAPE))
     {
         pushAppState(findByName("PauseState"));
         return true;
     }
 
-    if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_I))
+    if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_I))
     {
        
     }
 
-    if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_TAB))
+    if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_TAB))
     {
         m_bSettingsMode = !m_bSettingsMode;
         return true;
     }
 
-    if(m_bSettingsMode && OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_RETURN) ||
-        OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_NUMPADENTER))
+    if(m_bSettingsMode && OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_RETURN) ||
+        OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_NUMPADENTER))
     {
     }
 
-    if(!m_bSettingsMode || (m_bSettingsMode && !OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_O)))
+    if(!m_bSettingsMode || (m_bSettingsMode && !OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_O)))
         OgreFramework::getSingletonPtr()->keyPressed(keyEventRef);
 
     return true;
@@ -168,8 +168,8 @@ bool GameState::mouseMoved(const OIS::MouseEvent &evt)
 
     if(m_bRMouseDown)
     {
-        m_pCamera->yaw(Degree(evt.state.X.rel * -0.1f));
-        m_pCamera->pitch(Degree(evt.state.Y.rel * -0.1f));
+        mCamera->yaw(Degree(evt.state.X.rel * -0.1f));
+        mCamera->pitch(Degree(evt.state.Y.rel * -0.1f));
     }
 
     return true;
@@ -216,30 +216,30 @@ bool GameState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 
 void GameState::onLeftPressed(const OIS::MouseEvent &evt)
 {
-    if(m_pCurrentObject)
+    if(mCurrentObject)
     {
-        m_pCurrentObject->showBoundingBox(false);
-        m_pCurrentEntity->getSubEntity(1)->setMaterial(m_pOgreHeadMat);
+        mCurrentObject->showBoundingBox(false);
+        mCurrentEntity->getSubEntity(1)->setMaterial(mOgreHeadMat);
     }
 
-    Ogre::Ray mouseRay = m_pCamera->getCameraToViewportRay(OgreFramework::getSingletonPtr()->m_pMouse->getMouseState().X.abs / float(evt.state.width),
-        OgreFramework::getSingletonPtr()->m_pMouse->getMouseState().Y.abs / float(evt.state.height));
-    m_pRSQ->setRay(mouseRay);
-    m_pRSQ->setSortByDistance(true);
+    Ogre::Ray mouseRay = mCamera->getCameraToViewportRay(OgreFramework::getSingletonPtr()->mMouse->getMouseState().X.abs / float(evt.state.width),
+        OgreFramework::getSingletonPtr()->mMouse->getMouseState().Y.abs / float(evt.state.height));
+    mRSQ->setRay(mouseRay);
+    mRSQ->setSortByDistance(true);
 
-    Ogre::RaySceneQueryResult &result = m_pRSQ->execute();
+    Ogre::RaySceneQueryResult &result = mRSQ->execute();
     Ogre::RaySceneQueryResult::iterator itr;
 
     for(itr = result.begin(); itr != result.end(); itr++)
     {
         if(itr->movable)
         {
-            OgreFramework::getSingletonPtr()->m_pLog->logMessage("MovableName: " + itr->movable->getName());
-            m_pCurrentObject = m_pSceneMgr->getEntity(itr->movable->getName())->getParentSceneNode();
-            OgreFramework::getSingletonPtr()->m_pLog->logMessage("ObjName " + m_pCurrentObject->getName());
-            m_pCurrentObject->showBoundingBox(true);
-            m_pCurrentEntity = m_pSceneMgr->getEntity(itr->movable->getName());
-            m_pCurrentEntity->getSubEntity(1)->setMaterial(m_pOgreHeadMatHigh);
+            OgreFramework::getSingletonPtr()->mLog->logMessage("MovableName: " + itr->movable->getName());
+            mCurrentObject = mSceneMgr->getEntity(itr->movable->getName())->getParentSceneNode();
+            OgreFramework::getSingletonPtr()->mLog->logMessage("ObjName " + mCurrentObject->getName());
+            mCurrentObject->showBoundingBox(true);
+            mCurrentEntity = mSceneMgr->getEntity(itr->movable->getName());
+            mCurrentEntity->getSubEntity(1)->setMaterial(mOgreHeadMatHigh);
             break;
         }
     }
@@ -249,9 +249,9 @@ void GameState::onLeftPressed(const OIS::MouseEvent &evt)
 
 void GameState::moveCamera()
 {
-    if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_LSHIFT))
-        m_pCamera->moveRelative(m_TranslateVector);
-    m_pCamera->moveRelative(m_TranslateVector / 10);
+    if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_LSHIFT))
+        mCamera->moveRelative(m_TranslateVector);
+    mCamera->moveRelative(m_TranslateVector / 10);
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -260,16 +260,16 @@ void GameState::getInput()
 {
     if(m_bSettingsMode == false)
     {
-        if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_A))
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_A))
             m_TranslateVector.x = -m_MoveScale;
 
-        if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_D))
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_D))
             m_TranslateVector.x = m_MoveScale;
 
-        if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_W))
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_W))
             m_TranslateVector.z = -m_MoveScale;
 
-        if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_S))
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_S))
             m_TranslateVector.z = m_MoveScale;
     }
 }

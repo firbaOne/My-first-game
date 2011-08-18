@@ -19,7 +19,7 @@ public:
 	void startDemo();
 
 private:
-	AppStateManager*	m_pAppStateManager;
+	AppStateManager*	mAppStateManager;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
