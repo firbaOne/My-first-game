@@ -98,12 +98,51 @@ bool MenuState::showGraphicsOptions(const CEGUI::EventArgs &e)
             // Iterate through options
             ConfigOptionMap::iterator pOpt = opts.begin();
             String strLine;
+			
+			std::vector<CEGUI::Combobox *> comboboxs ;
+			std::vector<CEGUI::Window *>  staticTexts ;
+			int it = 0;
+			CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+			CEGUI::Window * parent = wmgr.getWindow("Root/Options/Graphics/Window");
+			/*CEGUI::Scrollbar * scrollbar = (CEGUI::Scrollbar *)wmgr.getWindow("Root/Options/Graphics/scrollbar");
+			scrollbar->setDocumentSize(12.0f);
+			scrollbar->setPageSize(3.0f);
+			scrollbar->setOverlapSize(0.0f);
+			scrollbar->setScrollPosition(0.0f);
+			scrollbar->setStepSize(0.5f);
+			parent->addChildWindow(scrollbar);*/
             while( pOpt!= opts.end() )
             {
+				std::vector<CEGUI::ListboxTextItem *>  items ;
                 strLine = pOpt->second.name + ": " + pOpt->second.currentValue;
-           
+				//polozky.push_back(new CEGUI::ListboxTextItem(pOpt->second.currentValue));
+				comboboxs.push_back((CEGUI::Combobox *) wmgr.createWindow("TaharezLook/Combobox", pOpt->second.name ));
+				comboboxs[it]->setSize(CEGUI::UVector2(CEGUI::UDim(0.40, 0), CEGUI::UDim(0.15, 0)));
+				comboboxs[it]->setVisible(true);
+				comboboxs[it]->setPosition(CEGUI::UVector2(CEGUI::UVector2(CEGUI::UDim(0.50, 0), CEGUI::UDim(0.07 * it, 0))));
+				parent->addChildWindow(comboboxs[it]);
+				int iter = 0;//pOpt->second.possibleValues.begin();
+				while(iter < pOpt->second.possibleValues.size())
+				{
+					items.push_back( new CEGUI::ListboxTextItem(pOpt->second.possibleValues[iter]));
+					comboboxs[it]->addItem(items[iter]);
+					iter++;
+				}
+				
+
+				staticTexts.push_back( wmgr.createWindow("TaharezLook/StaticText" ));
+				staticTexts[it]->setText(pOpt->second.name);
+				staticTexts[it]->setSize(CEGUI::UVector2(CEGUI::UDim(0.40, 0), CEGUI::UDim(0.05, 0)));
+				staticTexts[it]->setVisible(true);
+				staticTexts[it]->setPosition(CEGUI::UVector2(CEGUI::UVector2(CEGUI::UDim(0, 0), CEGUI::UDim(0.07 * it, 0))));
+				parent->addChildWindow(staticTexts[it]);
                 ++pOpt;
+				it++;
             }
+		//	std::vector<CEGUI::ListboxTextItem *>::iterator it = polozky.begin();
+			
+			//CEGUI::Combobox* pCombobox = (CEGUI::Combobox *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options/Graphics/Option");
+
         }
 
         ++pRend;
