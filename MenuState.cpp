@@ -1,7 +1,7 @@
 //|||||||||||||||||||||||||||||||||||||||||||||||
 #include "stdafx.h"
 #include "MenuState.hpp"
-
+#include <string>
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 using namespace Ogre;
@@ -13,6 +13,8 @@ MenuState::MenuState()
     m_bQuit         = false;
     m_FrameEvent    = Ogre::FrameEvent();
 	mRenderer = 0;
+	rootWindow = 0;
+	actualWindow = 0;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -40,6 +42,9 @@ void MenuState::enter()
 	CEGUI::Scheme::setDefaultResourceGroup("Schemes");
 	CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
 	CEGUI::WindowManager::setDefaultResourceGroup("Layouts");
+	CEGUI::SchemeManager::getSingleton().create("TaharezLook.scheme");
+	CEGUI::System::getSingleton().setDefaultMouseCursor("TaharezLook", "MouseArrow");
+	CEGUI::MouseCursor::getSingleton().setImage( CEGUI::System::getSingleton().getDefaultMouseCursor());
     createScene();
 }
 
@@ -47,84 +52,96 @@ void MenuState::enter()
 
 void MenuState::createScene()
 {
-	CEGUI::SchemeManager::getSingleton().create("TaharezLook.scheme");
-	CEGUI::System::getSingleton().setDefaultMouseCursor("TaharezLook", "MouseArrow");
-	CEGUI::Window *guiRoot = CEGUI::WindowManager::getSingleton().loadWindowLayout("Menu.layout"); 
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+	CEGUI::Window *guiRoot = wmgr.loadWindowLayout("Menu.layout"); 
 	CEGUI::System::getSingleton().setGUISheet(guiRoot);
-	CEGUI::MouseCursor::getSingleton().setImage( CEGUI::System::getSingleton().getDefaultMouseCursor());
+	generateGraphicsMenu();
+	rootWindow = (CEGUI::FrameWindow *) wmgr.getWindow("Root/Menu");
+	actualWindow = rootWindow;
 	
-	CEGUI::PushButton* pQuitButton = (CEGUI::PushButton *)CEGUI::WindowManager::getSingleton().getWindow("Root/Menu/buttonQuit");
+	/* Main menu Buttons event binding */
+	CEGUI::PushButton* pQuitButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Menu/buttonQuit");
 	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::quit, this));
 
-	CEGUI::PushButton* pOptionsButton = (CEGUI::PushButton *)CEGUI::WindowManager::getSingleton().getWindow("Root/Menu/buttonOptions");
+	CEGUI::FrameWindow * pFrameWindow = (CEGUI::FrameWindow *)wmgr.getWindow("Root/Menu");
+	pQuitButton = pFrameWindow->getCloseButton();
+	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::quit, this));
+
+	CEGUI::PushButton* pOptionsButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Menu/buttonOptions");
 	pOptionsButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::showOptions, this));
 	
-	CEGUI::PushButton* pOptionsGraphicsBut = (CEGUI::PushButton *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options/buttonGraphics");
+	/*Options menu event binding */
+	pFrameWindow = (CEGUI::FrameWindow *)wmgr.getWindow("Root/Options");
+	pQuitButton = pFrameWindow->getCloseButton();
+	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::hideOptions, this));
+
+	CEGUI::PushButton* pOptionsGraphicsBut = (CEGUI::PushButton *)wmgr.getWindow("Root/Options/buttonGraphics");
 	pOptionsGraphicsBut->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::showGraphicsOptions, this));
+	
+	/* Options/Graphics menu event binding */
+	pFrameWindow = (CEGUI::FrameWindow *)wmgr.getWindow("Root/Options/Graphics");
+	pQuitButton = pFrameWindow->getCloseButton();
+	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::hideGraphicsOptions, this));
+
+	pQuitButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Options/Graphics/buttonBack");
+	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::hideGraphicsOptions, this));
+
+	pQuitButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Options/Graphics/buttonApply");
+	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::applyGraphicsOptions, this));
 }
-bool MenuState::quit(const CEGUI::EventArgs &e)
+bool MenuState::applyGraphicsOptions(const CEGUI::EventArgs &e)
 {
-	m_bQuit = true;
+	/*Ogre::RenderSystem *rs = OgreFramework::getSingletonPtr()->mRoot->getRenderSystem();
+	rs->setConfigOption("Full Screen", "Yes");
+	rs->reinitialise();*/
 	return true;
 }
-bool MenuState::showOptions(const CEGUI::EventArgs &e)
+void MenuState::generateGraphicsMenu()
 {
-	CEGUI::FrameWindow * pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options");
-	pOptionsWindow->setVisible(true);
-	return true;
-}
-bool MenuState::showGraphicsOptions(const CEGUI::EventArgs &e)
-{
-	CEGUI::FrameWindow * pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options/Graphics");
-	static const RenderSystemList* lstRend;
+	/* Basic code just copied from OgreConfigDialog.h */
+	CEGUI::FrameWindow *pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options/Graphics");
+	static const RenderSystemList * lstRend;
     RenderSystemList::const_iterator pRend;
     static ConfigOptionMap opts;
 	Ogre::RenderSystem * selectedRenderSystem = OgreFramework::getSingletonPtr()->mRoot->getRenderSystem();
-	lstRend = &Root::getSingleton().getAvailableRenderers();
-    pRend = lstRend->begin();            
+	lstRend = &OgreFramework::getSingletonPtr()->mRoot->getAvailableRenderers();
+
+	pRend = lstRend->begin();            
     int i = 0;
     while (pRend != lstRend->end())
     {
-
+		
+		
         if (*pRend == selectedRenderSystem)
         {
-            // Select
-            // Refresh Options
+	
             // Get options from render system
             opts = (*pRend)->getConfigOptions();
-            // Reset list box
            
-            //SendMessage(hwndDlgItem, LB_RESETCONTENT, 0, 0);
             // Iterate through options
             ConfigOptionMap::iterator pOpt = opts.begin();
-            String strLine;
 			
-			std::vector<CEGUI::Combobox *> comboboxs ;
-			std::vector<CEGUI::Window *>  staticTexts ;
+
 			int it = 0;
 			CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
-			CEGUI::Window * parent = wmgr.getWindow("Root/Options/Graphics/Window");
-			/*CEGUI::Scrollbar * scrollbar = (CEGUI::Scrollbar *)wmgr.getWindow("Root/Options/Graphics/scrollbar");
-			scrollbar->setDocumentSize(12.0f);
-			scrollbar->setPageSize(3.0f);
-			scrollbar->setOverlapSize(0.0f);
-			scrollbar->setScrollPosition(0.0f);
-			scrollbar->setStepSize(0.5f);
-			parent->addChildWindow(scrollbar);*/
+			CEGUI::Window * parent = wmgr.getWindow("Root/Options/Graphics");
             while( pOpt!= opts.end() )
             {
 				std::vector<CEGUI::ListboxTextItem *>  items ;
-                strLine = pOpt->second.name + ": " + pOpt->second.currentValue;
-				//polozky.push_back(new CEGUI::ListboxTextItem(pOpt->second.currentValue));
-				comboboxs.push_back((CEGUI::Combobox *) wmgr.createWindow("TaharezLook/Combobox", pOpt->second.name ));
+				comboboxs.push_back((CEGUI::Combobox *) wmgr.createWindow("TaharezLook/Combobox",(*pRend)->getName() + pOpt->second.name ));
 				comboboxs[it]->setSize(CEGUI::UVector2(CEGUI::UDim(0.40, 0), CEGUI::UDim(0.15, 0)));
 				comboboxs[it]->setVisible(true);
-				comboboxs[it]->setPosition(CEGUI::UVector2(CEGUI::UVector2(CEGUI::UDim(0.50, 0), CEGUI::UDim(0.07 * it, 0))));
+				comboboxs[it]->setPosition(CEGUI::UVector2(CEGUI::UVector2(CEGUI::UDim(0.50, 0), CEGUI::UDim(0.07 *( it+1), 0))));
+				comboboxs[it]->setText(pOpt->second.currentValue);
 				parent->addChildWindow(comboboxs[it]);
-				int iter = 0;//pOpt->second.possibleValues.begin();
+				unsigned int iter = 0;
 				while(iter < pOpt->second.possibleValues.size())
 				{
 					items.push_back( new CEGUI::ListboxTextItem(pOpt->second.possibleValues[iter]));
+					if(pOpt->second.possibleValues[iter] == pOpt->second.currentValue)
+					{
+						items[iter]->setSelected(true);
+					}
 					comboboxs[it]->addItem(items[iter]);
 					iter++;
 				}
@@ -134,22 +151,59 @@ bool MenuState::showGraphicsOptions(const CEGUI::EventArgs &e)
 				staticTexts[it]->setText(pOpt->second.name);
 				staticTexts[it]->setSize(CEGUI::UVector2(CEGUI::UDim(0.40, 0), CEGUI::UDim(0.05, 0)));
 				staticTexts[it]->setVisible(true);
-				staticTexts[it]->setPosition(CEGUI::UVector2(CEGUI::UVector2(CEGUI::UDim(0, 0), CEGUI::UDim(0.07 * it, 0))));
+				staticTexts[it]->setPosition(CEGUI::UVector2(CEGUI::UVector2(CEGUI::UDim(0, 0), CEGUI::UDim(0.07 * (it+1), 0))));
 				parent->addChildWindow(staticTexts[it]);
                 ++pOpt;
 				it++;
             }
-		//	std::vector<CEGUI::ListboxTextItem *>::iterator it = polozky.begin();
 			
-			//CEGUI::Combobox* pCombobox = (CEGUI::Combobox *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options/Graphics/Option");
-
         }
-
+		
         ++pRend;
         ++i;
     }
 
+	
+}
+bool MenuState::quit(const CEGUI::EventArgs &e)
+{
+	m_bQuit = true;
+	return true;
+}
+bool MenuState::showOptions(const CEGUI::EventArgs &e)
+{
+	CEGUI::FrameWindow * pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Menu");
+	pOptionsWindow->setVisible(false);
+	pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options");
 	pOptionsWindow->setVisible(true);
+	actualWindow = pOptionsWindow;
+	return true;
+}
+bool MenuState::hideOptions(const CEGUI::EventArgs &e)
+{
+	CEGUI::FrameWindow * pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options");
+	pOptionsWindow->setVisible(false);
+	pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Menu");
+	pOptionsWindow->setVisible(true);
+	actualWindow = rootWindow;
+	return true;
+}
+bool MenuState::hideGraphicsOptions(const CEGUI::EventArgs &e)
+{
+	CEGUI::FrameWindow * pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options/Graphics");
+	pOptionsWindow->setVisible(false);
+	pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options");
+	pOptionsWindow->setVisible(true);
+	actualWindow = pOptionsWindow;
+	return true;
+}
+bool MenuState::showGraphicsOptions(const CEGUI::EventArgs &e)
+{
+	CEGUI::FrameWindow * pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options");
+	pOptionsWindow->setVisible(false);
+	pOptionsWindow = (CEGUI::FrameWindow *)CEGUI::WindowManager::getSingleton().getWindow("Root/Options/Graphics");
+	pOptionsWindow->setVisible(true);
+	actualWindow = pOptionsWindow;
 	return true;
 }
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -171,7 +225,16 @@ bool MenuState::keyPressed(const OIS::KeyEvent &keyEventRef)
 {
     if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_ESCAPE))
     {
-        m_bQuit = true;
+        if(actualWindow == rootWindow)
+		{
+			m_bQuit = true;
+		}
+		else
+		{
+			
+			actualWindow->getCloseButton()->fireEvent(CEGUI::PushButton::EventClicked, CEGUI::EventArgs());
+			//actualWindow->getCloseButton()->fi
+		}
         return true;
     }
 

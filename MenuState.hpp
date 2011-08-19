@@ -29,13 +29,21 @@ public:
 
 
 	void update(double timeSinceLastFrame);
+	void generateGraphicsMenu();
 	/* CEGUI events handler functions */
 	bool quit(const CEGUI::EventArgs &e);
 	bool showOptions(const CEGUI::EventArgs &e);
+	bool hideOptions(const CEGUI::EventArgs &e);
 	bool showGraphicsOptions(const CEGUI::EventArgs &e);
+	bool applyGraphicsOptions(const CEGUI::EventArgs &e);
+	bool hideGraphicsOptions(const CEGUI::EventArgs &e);
 private:
 	bool m_bQuit;
 	CEGUI::OgreRenderer *mRenderer;
+	CEGUI::FrameWindow * actualWindow;
+	CEGUI::FrameWindow * rootWindow;
+	std::vector<CEGUI::Combobox *> comboboxs ;
+	std::vector<CEGUI::Window *>  staticTexts ;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
