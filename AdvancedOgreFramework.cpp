@@ -108,7 +108,7 @@ bool OgreFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListen
     mTimer->reset();
 
     mRenderWnd->setActive(true);
-
+	mSoundManager = OgreOggSound::OgreOggSoundManager::getSingletonPtr();
     return true;
 }
 

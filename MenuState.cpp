@@ -15,6 +15,7 @@ MenuState::MenuState()
 	mRenderer = 0;
 	rootWindow = 0;
 	actualWindow = 0;
+	mSoundManager = OgreOggSound::OgreOggSoundManager::getSingletonPtr();
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -45,6 +46,7 @@ void MenuState::enter()
 	CEGUI::SchemeManager::getSingleton().create("TaharezLook.scheme");
 	CEGUI::System::getSingleton().setDefaultMouseCursor("TaharezLook", "MouseArrow");
 	CEGUI::MouseCursor::getSingleton().setImage( CEGUI::System::getSingleton().getDefaultMouseCursor());
+	mSoundManager->init() ;
     createScene();
 }
 
@@ -59,6 +61,9 @@ void MenuState::createScene()
 	rootWindow = (CEGUI::FrameWindow *) wmgr.getWindow("Root/Menu");
 	actualWindow = rootWindow;
 	
+	mSoundManager->createSound("MenuBackgroundMusic", "shot.ogg", false, true, true) ;
+	mSoundManager->getSound("MenuBackgroundMusic")->play();
+
 	/* Main menu Buttons event binding */
 	CEGUI::PushButton* pQuitButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Menu/buttonQuit");
 	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::quit, this));
@@ -69,6 +74,9 @@ void MenuState::createScene()
 
 	CEGUI::PushButton* pOptionsButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Menu/buttonOptions");
 	pOptionsButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::showOptions, this));
+
+	pOptionsButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Menu/buttonStart");
+	pOptionsButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::showStart, this));
 	
 	/*Options menu event binding */
 	pFrameWindow = (CEGUI::FrameWindow *)wmgr.getWindow("Root/Options");
@@ -88,6 +96,21 @@ void MenuState::createScene()
 
 	pQuitButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Options/Graphics/buttonApply");
 	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MenuState::applyGraphicsOptions, this));
+}
+bool MenuState::showStart(const CEGUI::EventArgs &e)
+{
+	 changeAppState(findByName("GameState"));
+
+	   
+	   
+
+
+	return true;
+}
+bool MenuState::hideStart(const CEGUI::EventArgs &e)
+{
+	/* this function should hide start game dialog, for now it does nothing, as there is no start game dialog */
+	return true;
 }
 bool MenuState::applyGraphicsOptions(const CEGUI::EventArgs &e)
 {
@@ -215,8 +238,10 @@ void MenuState::exit()
     mSceneMgr->destroyCamera(mCamera);
     if(mSceneMgr)
         OgreFramework::getSingletonPtr()->mRoot->destroySceneManager(mSceneMgr);
-
-   
+	mSoundManager->destroySound("MenuBackgroundSound");
+	CEGUI::WindowManager::getSingleton().destroyAllWindows();
+	CEGUI::System::destroy();
+	//OgreFramework::getSingletonPtr()->mRoot->removeFrameListener(this);
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -233,7 +258,6 @@ bool MenuState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		{
 			
 			actualWindow->getCloseButton()->fireEvent(CEGUI::PushButton::EventClicked, CEGUI::EventArgs());
-			//actualWindow->getCloseButton()->fi
 		}
         return true;
     }
@@ -290,7 +314,7 @@ bool MenuState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 
 bool MenuState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 {
-    CEGUI::System::getSingleton().injectMouseButtonUp(convertButton(id));
+	CEGUI::System::getSingleton().injectMouseButtonUp(convertButton(id));
     return true;
 }
 

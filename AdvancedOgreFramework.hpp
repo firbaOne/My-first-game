@@ -40,6 +40,7 @@ public:
 private:
 	OgreFramework(const OgreFramework&);
 	OgreFramework& operator= (const OgreFramework&);
+	OgreOggSound::OgreOggSoundManager* mSoundManager ;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

@@ -9,6 +9,8 @@
 #include <OgreSceneManager.h>
 #include <OgreRenderWindow.h>
 #include <OgreConfigFile.h>
+#include "OgreVector3.h"
+#include "OgreQuaternion.h"
 
 #include <OISEvents.h>
 #include <OISInputManager.h>
@@ -22,3 +24,24 @@
 #include <Terrain/OgreTerrain.h>
 #include <Terrain/OgreTerrainGroup.h>
 #include <Terrain/OgreTerrainMaterialGeneratorA.h>
+
+#include "btBulletDynamicsCommon.h"
+#include "OgreSimpleRenderable.h"
+#include "OgreCamera.h"
+#include "OgreSceneNode.h"
+#include "OgreHardwareBufferManager.h"
+#include "OgreMaterialManager.h"
+#include "OgreTechnique.h"
+#include "OgrePass.h"
+
+ // OpenAl version 1.1
+ #include <al.h>
+ #include <alc.h>
+#include <AL/alut.h>
+ #include <stdio.h>
+ #include <string>
+#include <vorbis/vorbisfile.h>
+#include <ogg/ogg.h>
+
+/* OgreOggSound */
+#include "OgreOggSound.h"
