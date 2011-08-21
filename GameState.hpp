@@ -7,11 +7,9 @@
 
 #include "AppState.hpp"
 
-#include "DotSceneLoader.hpp"
 
-#include <OgreSubEntity.h>
-#include <OgreMaterialManager.h>
-
+#include "Viper.h"
+#define DEBUG
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 enum QueryFlags
@@ -57,7 +55,7 @@ private:
 	Ogre::MaterialPtr			mOgreHeadMat;
 	Ogre::MaterialPtr			mOgreHeadMatHigh;
 
-
+	void loadActionKeys();
 	bool						m_bQuit;
 
 	Ogre::Vector3				m_TranslateVector;
@@ -69,8 +67,28 @@ private:
 	Ogre::RaySceneQuery*		mRSQ;
 	Ogre::SceneNode*			mCurrentObject;
 	Ogre::Entity*				mCurrentEntity;
+	Ogre::SceneNode *			mCameraNode;
 	bool						m_bLMouseDown, m_bRMouseDown;
-	bool						m_bSettingsMode;
+#ifdef DEBUG
+	bool						m_bSettingsMode; /* I will use it as Debug Mode */
+#endif
+	/* Actions key codes */
+	OIS::KeyCode mActionForward;
+	OIS::KeyCode mActionBackward;
+	OIS::KeyCode mActionLeft;
+	OIS::KeyCode mActionRight;
+
+	/* Bullet variables */
+	btCollisionWorld *mWorld;
+	BtOgre::DebugDrawer * mDebugDrawer;
+	btBroadphaseInterface* broadphase;
+    btDefaultCollisionConfiguration* collisionConfiguration;
+    btCollisionDispatcher* dispatcher;
+    btSequentialImpulseConstraintSolver* solver;
+
+	/* player variables */
+	Viper * player;
+	Ogre::Quaternion * playerQuat;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

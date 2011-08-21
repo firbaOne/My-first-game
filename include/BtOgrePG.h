@@ -13,7 +13,7 @@
  *
  * =====================================================================================
  */
-#include "stdafx.h"
+/*#include "stdafx.h"*/
 #ifndef _BtOgreGP_H_
 #define _BtOgreGP_H_
 

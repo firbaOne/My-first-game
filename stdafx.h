@@ -25,7 +25,7 @@
 #include <Terrain/OgreTerrainGroup.h>
 #include <Terrain/OgreTerrainMaterialGeneratorA.h>
 
-#include "btBulletDynamicsCommon.h"
+
 #include "OgreSimpleRenderable.h"
 #include "OgreCamera.h"
 #include "OgreSceneNode.h"
@@ -45,3 +45,10 @@
 
 /* OgreOggSound */
 #include "OgreOggSound.h"
+
+/*Physics */
+#include "btBulletDynamicsCommon.h"
+#include "btBulletCollisionCommon.h"
+#include "BtOgreExtras.h"
+#include "BtOgreGP.h"
+#include "BtOgrePG.h"

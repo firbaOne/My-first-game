@@ -35,6 +35,11 @@ public:
 private:
     bool m_bQuit;
     bool m_bQuestionActive;
+	/* CEGUI events handler functions */
+	bool quit(const CEGUI::EventArgs &e);
+	bool showMainMenu(const CEGUI::EventArgs &e);
+	bool Continue(const CEGUI::EventArgs &e);
+	bool mInject;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

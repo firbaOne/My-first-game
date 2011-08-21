@@ -109,6 +109,16 @@ bool OgreFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListen
 
     mRenderWnd->setActive(true);
 	mSoundManager = OgreOggSound::OgreOggSoundManager::getSingletonPtr();
+	/* I am creating scene manager here , because SounndManager needs some SceneManager to be availabe in order to be able to init() */
+	Ogre::SceneManager *mSceneMgr = OgreFramework::getSingletonPtr()->mRoot->createSceneManager(ST_GENERIC, "DefaultSceneMgr");
+	mSoundManager->init();
+	/* CEGUI init */
+	mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
+    CEGUI::Imageset::setDefaultResourceGroup("Imagesets");
+	CEGUI::Font::setDefaultResourceGroup("Fonts");
+	CEGUI::Scheme::setDefaultResourceGroup("Schemes");
+	CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
+	CEGUI::WindowManager::setDefaultResourceGroup("Layouts");
     return true;
 }
 

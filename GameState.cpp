@@ -16,8 +16,9 @@ GameState::GameState()
     m_bLMouseDown       = false;
     m_bRMouseDown       = false;
     m_bQuit             = false;
+#ifdef DEBUG
     m_bSettingsMode     = false;
-
+#endif
 
 }
 
@@ -34,15 +35,25 @@ void GameState::enter()
     mRSQ->setQueryMask(OGRE_HEAD_MASK);
 
     mCamera = mSceneMgr->createCamera("GameCamera");
-    mCamera->setPosition(Vector3(5, 60, 60));
-    mCamera->lookAt(Vector3(5, 20, 0));
-    mCamera->setNearClipDistance(5);
+   
+    mCamera->lookAt(Vector3(100, -30, 0));
+	mCamera->lookAt(Vector3(100,-30,0));
+    mCamera->setNearClipDistance(0.3);
 
     mCamera->setAspectRatio(Real(OgreFramework::getSingletonPtr()->mViewport->getActualWidth()) /
         Real(OgreFramework::getSingletonPtr()->mViewport->getActualHeight()));
-
+	
     OgreFramework::getSingletonPtr()->mViewport->setCamera(mCamera);
+	OgreFramework::getSingletonPtr()->mViewport->setBackgroundColour(Ogre::ColourValue(0.f, 0.f, 0.f));
     mCurrentObject = 0;
+	/* Load Physics*/
+	broadphase = new btDbvtBroadphase();
+	collisionConfiguration = new btDefaultCollisionConfiguration();
+    dispatcher = new btCollisionDispatcher(collisionConfiguration);
+    solver = new btSequentialImpulseConstraintSolver;
+    mWorld = new btCollisionWorld(dispatcher,broadphase,collisionConfiguration);
+
+	loadActionKeys();
 
     buildGUI();
 
@@ -67,6 +78,7 @@ void GameState::resume()
     buildGUI();
 
     OgreFramework::getSingletonPtr()->mViewport->setCamera(mCamera);
+	OgreFramework::getSingletonPtr()->mViewport->setBackgroundColour(Ogre::ColourValue(0.f, 0.f, 0.f));
     m_bQuit = false;
 }
 
@@ -86,33 +98,30 @@ void GameState::exit()
 
 void GameState::createScene()
 {
-    mSceneMgr->createLight("Light")->setPosition(75,75,75);
-
-    DotSceneLoader* pDotSceneLoader = new DotSceneLoader();
-    pDotSceneLoader->parseDotScene("CubeScene.xml", "General", mSceneMgr, mSceneMgr->getRootSceneNode());
-    delete pDotSceneLoader;
-
-    mSceneMgr->getEntity("Cube01")->setQueryFlags(CUBE_MASK);
-    mSceneMgr->getEntity("Cube02")->setQueryFlags(CUBE_MASK);
-    mSceneMgr->getEntity("Cube03")->setQueryFlags(CUBE_MASK);
-
-    mOgreHeadEntity = mSceneMgr->createEntity("Cube", "ogrehead.mesh");
-    mOgreHeadEntity->setQueryFlags(OGRE_HEAD_MASK);
-    mOgreHeadNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("CubeNode");
-    mOgreHeadNode->attachObject(mOgreHeadEntity);
-    mOgreHeadNode->setPosition(Vector3(0, 0, -25));
-
-    mOgreHeadMat = mOgreHeadEntity->getSubEntity(1)->getMaterial();
-    mOgreHeadMatHigh = mOgreHeadMat->clone("OgreHeadMatHigh");
-    mOgreHeadMatHigh->getTechnique(0)->getPass(0)->setAmbient(1, 0, 0);
-    mOgreHeadMatHigh->getTechnique(0)->getPass(0)->setDiffuse(1, 0, 0, 0);
+	mSceneMgr->setSkyBox(true, "SkyBox");
+    mDebugDrawer = new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), mWorld);
+	mDebugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	mWorld->setDebugDrawer(mDebugDrawer);
+	player = new Viper( mSceneMgr, mWorld);
+	Ogre::SceneNode * playerSceneNode = player->getSceneNode();
+	mCameraNode = playerSceneNode->createChildSceneNode("CameraNode", Ogre::Vector3(-4, 5, 0));
+	mCameraNode->attachObject(mCamera);
+	Viper * player2 = new Viper(mSceneMgr, mWorld, Ogre::Vector3(100, 0,0));
 }
-
+void GameState::loadActionKeys()
+{
+	/* TODO - set it from config file, for now, I just hardcoded it here*/
+	mActionForward = OIS::KC_W;
+	mActionBackward = OIS::KC_S;
+	mActionLeft = OIS::KC_A;
+	mActionRight = OIS::KC_D;
+}
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 {
-    if(m_bSettingsMode == true)
+#ifdef DEBUG
+	if(m_bSettingsMode == true)
     {
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_S))
         {
@@ -124,7 +133,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
         {
         }
     }
-
+#endif
     if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_ESCAPE))
     {
         pushAppState(findByName("PauseState"));
@@ -135,7 +144,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
     {
        
     }
-
+#ifdef DEBUG
     if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_TAB))
     {
         m_bSettingsMode = !m_bSettingsMode;
@@ -149,7 +158,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 
     if(!m_bSettingsMode || (m_bSettingsMode && !OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_O)))
         OgreFramework::getSingletonPtr()->keyPressed(keyEventRef);
-
+#endif
     return true;
 }
 
@@ -171,7 +180,11 @@ bool GameState::mouseMoved(const OIS::MouseEvent &evt)
         mCamera->yaw(Degree(evt.state.X.rel * -0.1f));
         mCamera->pitch(Degree(evt.state.Y.rel * -0.1f));
     }
-
+	Ogre::Matrix3  mat =  Ogre::Matrix3();
+	mat.FromEulerAnglesXYZ(Ogre::Degree(0), Ogre::Degree(evt.state.X.rel * -0.1f),Ogre::Degree(evt.state.Y.rel * -0.1f));
+	Ogre::Quaternion quat = Ogre::Quaternion();
+	quat.FromRotationMatrix(mat);
+	player->transform(quat, Ogre::Vector3::ZERO);
     return true;
 }
 
@@ -258,20 +271,18 @@ void GameState::moveCamera()
 
 void GameState::getInput()
 {
-    if(m_bSettingsMode == false)
-    {
-        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_A))
+
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionLeft))
             m_TranslateVector.x = -m_MoveScale;
 
-        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_D))
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionRight))
             m_TranslateVector.x = m_MoveScale;
 
-        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_W))
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionForward))
             m_TranslateVector.z = -m_MoveScale;
 
-        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_S))
+        if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionBackward))
             m_TranslateVector.z = m_MoveScale;
-    }
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -279,7 +290,6 @@ void GameState::getInput()
 void GameState::update(double timeSinceLastFrame)
 {
     m_FrameEvent.timeSinceLastFrame = timeSinceLastFrame;
-    
 
     if(m_bQuit == true)
     {
@@ -291,9 +301,21 @@ void GameState::update(double timeSinceLastFrame)
 
     m_MoveScale = m_MoveSpeed   * timeSinceLastFrame;
     m_RotScale  = m_RotateSpeed * timeSinceLastFrame;
-
     m_TranslateVector = Vector3::ZERO;
+	
+	//player->transform(Ogre::Quaternion(0, evt.state.X.rel, evt.state.Y.rel, 1), Ogre::Vector3(10,0,0) * evt.timeSinceLastFrame);
+	static float cas;
+	cas += timeSinceLastFrame;
+	if(cas <0) cas =0;
+	if(cas >500)
+	{
+		cas =0;
+	}
 
+#ifdef DEBUG
+	if(m_bSettingsMode)
+	mDebugDrawer->step();
+#endif
     getInput();
     moveCamera();
 }

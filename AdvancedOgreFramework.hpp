@@ -34,13 +34,13 @@ public:
 	OIS::InputManager*			mInputMgr;
 	OIS::Keyboard*				mKeyboard;
 	OIS::Mouse*					mMouse;
-
-
+	OgreOggSound::OgreOggSoundManager* mSoundManager ;
+	CEGUI::OgreRenderer *mRenderer;
 
 private:
 	OgreFramework(const OgreFramework&);
 	OgreFramework& operator= (const OgreFramework&);
-	OgreOggSound::OgreOggSoundManager* mSoundManager ;
+
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

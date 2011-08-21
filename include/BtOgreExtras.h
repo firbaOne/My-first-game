@@ -12,7 +12,7 @@
  *
  * =====================================================================================
  */
-#include "stdafx.h"
+/*#include "stdafx.h"*/
 #ifndef _BtOgreShapes_H_
 #define _BtOgreShapes_H_
 
@@ -174,13 +174,13 @@ class DebugDrawer : public btIDebugDraw
 {
 protected:
 	Ogre::SceneNode *mNode;
-	btDynamicsWorld *mWorld;
+	btCollisionWorld *mWorld;
 	DynamicLines *mLineDrawer;
 	bool mDebugOn;
 
 public:
 
-	DebugDrawer(Ogre::SceneNode *node, btDynamicsWorld *world) 
+	DebugDrawer(Ogre::SceneNode *node, btCollisionWorld *world) 
 		: mNode(node),
 		  mWorld(world),
 		  mDebugOn(true)

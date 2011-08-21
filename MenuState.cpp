@@ -12,10 +12,9 @@ MenuState::MenuState()
 {
     m_bQuit         = false;
     m_FrameEvent    = Ogre::FrameEvent();
-	mRenderer = 0;
 	rootWindow = 0;
 	actualWindow = 0;
-	mSoundManager = OgreOggSound::OgreOggSoundManager::getSingletonPtr();
+	
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -36,17 +35,11 @@ void MenuState::enter()
         Real(OgreFramework::getSingletonPtr()->mViewport->getActualHeight()));
 
     OgreFramework::getSingletonPtr()->mViewport->setCamera(mCamera);
-	/* CEGUI initialization */
-	mRenderer = &CEGUI::OgreRenderer::bootstrapSystem();
-    CEGUI::Imageset::setDefaultResourceGroup("Imagesets");
-	CEGUI::Font::setDefaultResourceGroup("Fonts");
-	CEGUI::Scheme::setDefaultResourceGroup("Schemes");
-	CEGUI::WidgetLookManager::setDefaultResourceGroup("LookNFeel");
-	CEGUI::WindowManager::setDefaultResourceGroup("Layouts");
+	/* CEGUI initialization */	
+	CEGUI::MouseCursor::getSingleton().show();
 	CEGUI::SchemeManager::getSingleton().create("TaharezLook.scheme");
 	CEGUI::System::getSingleton().setDefaultMouseCursor("TaharezLook", "MouseArrow");
 	CEGUI::MouseCursor::getSingleton().setImage( CEGUI::System::getSingleton().getDefaultMouseCursor());
-	mSoundManager->init() ;
     createScene();
 }
 
@@ -60,9 +53,9 @@ void MenuState::createScene()
 	generateGraphicsMenu();
 	rootWindow = (CEGUI::FrameWindow *) wmgr.getWindow("Root/Menu");
 	actualWindow = rootWindow;
-	
-	mSoundManager->createSound("MenuBackgroundMusic", "shot.ogg", false, true, true) ;
-	mSoundManager->getSound("MenuBackgroundMusic")->play();
+	OgreFramework::getSingleton().mSoundManager->setSceneManager(mSceneMgr);
+	OgreFramework::getSingleton().mSoundManager->createSound("MenuBackgroundMusic", "background_music.ogg", false, true, true) ;
+	OgreFramework::getSingleton().mSoundManager->getSound("MenuBackgroundMusic")->play();
 
 	/* Main menu Buttons event binding */
 	CEGUI::PushButton* pQuitButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Menu/buttonQuit");
@@ -100,11 +93,6 @@ void MenuState::createScene()
 bool MenuState::showStart(const CEGUI::EventArgs &e)
 {
 	 changeAppState(findByName("GameState"));
-
-	   
-	   
-
-
 	return true;
 }
 bool MenuState::hideStart(const CEGUI::EventArgs &e)
@@ -238,10 +226,12 @@ void MenuState::exit()
     mSceneMgr->destroyCamera(mCamera);
     if(mSceneMgr)
         OgreFramework::getSingletonPtr()->mRoot->destroySceneManager(mSceneMgr);
-	mSoundManager->destroySound("MenuBackgroundSound");
+	OgreFramework::getSingleton().mSoundManager->destroyAllSounds();
 	CEGUI::WindowManager::getSingleton().destroyAllWindows();
-	CEGUI::System::destroy();
-	//OgreFramework::getSingletonPtr()->mRoot->removeFrameListener(this);
+	CEGUI::MouseCursor::getSingleton().hide();
+	comboboxs.clear();
+	staticTexts.clear();
+	//CEGUI::System::destroy();
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -275,23 +265,7 @@ bool MenuState::keyReleased(const OIS::KeyEvent &keyEventRef)
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
-CEGUI::MouseButton convertButton(OIS::MouseButtonID buttonID)
-{
-    switch (buttonID)
-    {
-    case OIS::MB_Left:
-        return CEGUI::LeftButton;
- 
-    case OIS::MB_Right:
-        return CEGUI::RightButton;
- 
-    case OIS::MB_Middle:
-        return CEGUI::MiddleButton;
- 
-    default:
-        return CEGUI::LeftButton;
-    }
-}
+
 bool MenuState::mouseMoved(const OIS::MouseEvent &evt)
 {
     CEGUI::System &sys = CEGUI::System::getSingleton();

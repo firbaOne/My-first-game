@@ -207,6 +207,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MyEntity.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\PauseState.cpp"
 				>
 			</File>
@@ -221,6 +225,10 @@
 						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Viper.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -269,6 +277,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MyEntity.h"
+				>
+			</File>
+			<File
 				RelativePath=".\PauseState.hpp"
 				>
 			</File>
@@ -278,6 +290,10 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Viper.h"
 				>
 			</File>
 		</Filter>

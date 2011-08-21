@@ -42,12 +42,9 @@ public:
 	bool hideStart(const CEGUI::EventArgs &e);
 private:
 	bool m_bQuit;
-	CEGUI::OgreRenderer *mRenderer;
-	CEGUI::FrameWindow * actualWindow;
-	CEGUI::FrameWindow * rootWindow;
 	std::vector<CEGUI::Combobox *> comboboxs ;
 	std::vector<CEGUI::Window *>  staticTexts ;
-	OgreOggSound::OgreOggSoundManager* mSoundManager ;
+	
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
