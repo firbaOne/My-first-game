@@ -11,11 +11,12 @@ using namespace Ogre;
 GameState::GameState()
 {
     m_MoveSpeed			= 0.1f;
-    m_RotateSpeed		= 0.3f;
+    m_RotateSpeed		= -0.05f;
 
     m_bLMouseDown       = false;
     m_bRMouseDown       = false;
     m_bQuit             = false;
+	mCameraDefaultOrientation = Ogre::Quaternion::IDENTITY;
 #ifdef DEBUG
     m_bSettingsMode     = false;
 #endif
@@ -36,10 +37,9 @@ void GameState::enter()
 
     mCamera = mSceneMgr->createCamera("GameCamera");
    
-    mCamera->lookAt(Vector3(100, -30, 0));
 	mCamera->lookAt(Vector3(100,-30,0));
     mCamera->setNearClipDistance(0.3);
-
+	mCameraDefaultOrientation = mCamera->getOrientation();
     mCamera->setAspectRatio(Real(OgreFramework::getSingletonPtr()->mViewport->getActualWidth()) /
         Real(OgreFramework::getSingletonPtr()->mViewport->getActualHeight()));
 	
@@ -52,7 +52,7 @@ void GameState::enter()
     dispatcher = new btCollisionDispatcher(collisionConfiguration);
     solver = new btSequentialImpulseConstraintSolver;
     mWorld = new btCollisionWorld(dispatcher,broadphase,collisionConfiguration);
-
+	OgreFramework::getSingleton().mSoundManager->setSceneManager(mSceneMgr);
 	loadActionKeys();
 
     buildGUI();
@@ -92,6 +92,8 @@ void GameState::exit()
     mSceneMgr->destroyQuery(mRSQ);
     if(mSceneMgr)
         OgreFramework::getSingletonPtr()->mRoot->destroySceneManager(mSceneMgr);
+	OgreFramework::getSingleton().mSoundManager->destroyAllSounds();
+	CEGUI::WindowManager::getSingleton().destroyAllWindows();
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -106,7 +108,22 @@ void GameState::createScene()
 	Ogre::SceneNode * playerSceneNode = player->getSceneNode();
 	mCameraNode = playerSceneNode->createChildSceneNode("CameraNode", Ogre::Vector3(-4, 5, 0));
 	mCameraNode->attachObject(mCamera);
+	TeamManager * team1 = new TeamManager("red", "Team01");
+	team1->addViper(player);
 	Viper * player2 = new Viper(mSceneMgr, mWorld, Ogre::Vector3(100, 0,0));
+	player2->transform(Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
+	TeamManager * team2 = new TeamManager("blue", "Team02");
+	team2->addViper(player2);
+	OgreFramework::getSingleton().mSoundManager->createSound("MenuBackgroundMusic", "background_music.ogg", false, true, true) ;
+	OgreFramework::getSingleton().mSoundManager->getSound("MenuBackgroundMusic")->play();
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+	CEGUI::Window *guiRoot = wmgr.loadWindowLayout("game.layout"); 
+	CEGUI::System::getSingleton().setGUISheet(guiRoot);
+	CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("Root/Life");
+	bar->setProgress(1.0f);
+#ifndef DEBUG
+	wmgr.destroyWindow("Root/Debug");
+#endif
 }
 void GameState::loadActionKeys()
 {
@@ -139,25 +156,12 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
         pushAppState(findByName("PauseState"));
         return true;
     }
-
-    if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_I))
-    {
-       
-    }
 #ifdef DEBUG
     if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_TAB))
     {
         m_bSettingsMode = !m_bSettingsMode;
         return true;
     }
-
-    if(m_bSettingsMode && OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_RETURN) ||
-        OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_NUMPADENTER))
-    {
-    }
-
-    if(!m_bSettingsMode || (m_bSettingsMode && !OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_O)))
-        OgreFramework::getSingletonPtr()->keyPressed(keyEventRef);
 #endif
     return true;
 }
@@ -180,11 +184,16 @@ bool GameState::mouseMoved(const OIS::MouseEvent &evt)
         mCamera->yaw(Degree(evt.state.X.rel * -0.1f));
         mCamera->pitch(Degree(evt.state.Y.rel * -0.1f));
     }
-	Ogre::Matrix3  mat =  Ogre::Matrix3();
-	mat.FromEulerAnglesXYZ(Ogre::Degree(0), Ogre::Degree(evt.state.X.rel * -0.1f),Ogre::Degree(evt.state.Y.rel * -0.1f));
-	Ogre::Quaternion quat = Ogre::Quaternion();
-	quat.FromRotationMatrix(mat);
-	player->transform(quat, Ogre::Vector3::ZERO);
+	else
+	{
+		/*Ogre::Matrix3  mat =  Ogre::Matrix3();
+		mat.FromEulerAnglesXYZ(Ogre::Degree(0), Ogre::Degree(evt.state.X.rel * m_RotScale),Ogre::Degree(evt.state.Y.rel * m_RotScale));
+		Ogre::Quaternion quat = Ogre::Quaternion();
+		quat.FromRotationMatrix(mat);
+		player->transform(quat, Ogre::Vector3::ZERO);*/
+		player->getSceneNode()->yaw(Degree(evt.state.X.rel * -0.1f));
+		player->getSceneNode()->roll(Degree(evt.state.Y.rel * -0.1f));
+	}
     return true;
 }
 
@@ -220,6 +229,7 @@ bool GameState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
     else if(id == OIS::MB_Right)
     {
         m_bRMouseDown = false;
+		mCamera->setOrientation(mCameraDefaultOrientation);
     }
 
     return true;
@@ -262,16 +272,26 @@ void GameState::onLeftPressed(const OIS::MouseEvent &evt)
 
 void GameState::moveCamera()
 {
-    if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_LSHIFT))
-        mCamera->moveRelative(m_TranslateVector);
-    mCamera->moveRelative(m_TranslateVector / 10);
+	/*if(m_bRMouseDown)   
+	{
+		if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_LSHIFT))
+			mCamera->moveRelative(m_TranslateVector);
+		mCamera->moveRelative(m_TranslateVector / 10);
+	}*/
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 void GameState::getInput()
 {
+	Ogre::Quaternion quat = mCamera->getOrientation();
 
+		if(m_bRMouseDown)
+		{
+			mCamera->setOrientation(mCameraDefaultOrientation);
+		}
+		Ogre::Vector3 dir = mCamera->getDerivedDirection();
+		dir.normalise();
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionLeft))
             m_TranslateVector.x = -m_MoveScale;
 
@@ -279,10 +299,27 @@ void GameState::getInput()
             m_TranslateVector.x = m_MoveScale;
 
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionForward))
-            m_TranslateVector.z = -m_MoveScale;
+		{
+			if(player->getDirection() != Ogre::Vector3::ZERO)
+			{player->setDirection((player->getDirection() * player->getSpeed()) + dir* m_FrameEvent.timeSinceLastFrame );}
+			else
+			{player->setDirection(dir);}
+			player->setSpeed(player->getSpeed() + Viper::acceleration * (m_FrameEvent.timeSinceLastFrame/1000));	
+		}
 
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionBackward))
-            m_TranslateVector.z = m_MoveScale;
+           {
+				player->setDirection((player->getDirection() * player->getSpeed()) + dir* m_FrameEvent.timeSinceLastFrame );
+				
+				player->setSpeed(player->getSpeed() - (Viper::acceleration/2) * (m_FrameEvent.timeSinceLastFrame/1000));
+					
+			}
+
+		if(m_bRMouseDown)
+		{
+			mCamera->setOrientation(quat);
+		}
+	
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -311,10 +348,28 @@ void GameState::update(double timeSinceLastFrame)
 	{
 		cas =0;
 	}
-
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+	CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("Root/Life");
+	bar->setProgress(player->getLife()/player->defaultLife);
+	CEGUI::Window * text = wmgr.getWindow("Root/Speed");
+	char txt[20];
+	sprintf(txt, "%.2f", player->getSpeed());
+	std::string t = "Speed: ";
+	t.append(txt);
+	text->setText(t);
 #ifdef DEBUG
 	if(m_bSettingsMode)
 	mDebugDrawer->step();
+	CEGUI::Window * stats = wmgr.getWindow("Root/Debug");
+	char txt1[100];
+	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getAverageFPS());
+	t = "FPS: ";
+	t.append(txt1);
+	t.append("\nBatches: ");
+	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getBatchCount());
+	t.append("\nTriangles: ");
+	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getTriangleCount());
+	stats->setText(t);
 #endif
     getInput();
     moveCamera();

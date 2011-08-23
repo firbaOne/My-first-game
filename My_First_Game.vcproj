@@ -227,6 +227,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\TeamManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Viper.cpp"
 				>
 			</File>
@@ -290,6 +294,10 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TeamManager.h"
 				>
 			</File>
 			<File

@@ -8,7 +8,8 @@
 #include "AppState.hpp"
 
 
-#include "Viper.h"
+#include "TeamManager.h"
+
 #define DEBUG
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -63,12 +64,12 @@ private:
 	Ogre::Degree				m_RotateSpeed;
 	float						m_MoveScale;
 	Ogre::Degree				m_RotScale;
-
 	Ogre::RaySceneQuery*		mRSQ;
 	Ogre::SceneNode*			mCurrentObject;
 	Ogre::Entity*				mCurrentEntity;
 	Ogre::SceneNode *			mCameraNode;
 	bool						m_bLMouseDown, m_bRMouseDown;
+	Ogre::Quaternion			mCameraDefaultOrientation;
 #ifdef DEBUG
 	bool						m_bSettingsMode; /* I will use it as Debug Mode */
 #endif

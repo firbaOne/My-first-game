@@ -25,12 +25,25 @@ MyEntity::MyEntity(std::string meshFileName, Ogre::SceneManager *sceneMgr, btCol
 	mColObject = new btCollisionObject();
 	mColObject->setCollisionShape(mShape);
 	mWorld->addCollisionObject(mColObject);
+	// some strange bug maybe, but the commented line not working, so I must transform created entity in order to synchronize graphical and physical position and rotation 
+	// not working even with _getDerivedOrientation() and _getDerivedPosition()
+	//mColObject->setWorldTransform(btTransform(BtOgre::Convert::toBullet(mSceneNode->getOrientation()), BtOgre::Convert::toBullet(mSceneNode->getPosition())));
+	this->transform(Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
 }
 
 void MyEntity::transform(Ogre::Quaternion  q, Ogre::Vector3  v)
 {
-	mSceneNode->translate(v);
-	mSceneNode->rotate(q);
+	mSceneNode->translate(v, Ogre::Node::TransformSpace::TS_WORLD);
+	mSceneNode->rotate(q, Ogre::Node::TransformSpace::TS_WORLD);
 	mColObject->setWorldTransform(btTransform(BtOgre::Convert::toBullet(mSceneNode->_getDerivedOrientation()), BtOgre::Convert::toBullet(mSceneNode->_getDerivedPosition())));
 	
+}
+
+MyEntity::~MyEntity()
+{
+	mSceneNode->getParentSceneNode()->removeAndDestroyAllChildren();
+	mSceneMgr->destroyEntity(mEntity);
+	mWorld->removeCollisionObject(mColObject);
+	delete mShape;
+	delete mColObject;
 }

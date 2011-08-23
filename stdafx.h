@@ -38,8 +38,6 @@
  #include <al.h>
  #include <alc.h>
 #include <AL/alut.h>
- #include <stdio.h>
- #include <string>
 #include <vorbis/vorbisfile.h>
 #include <ogg/ogg.h>
 
@@ -52,3 +50,8 @@
 #include "BtOgreExtras.h"
 #include "BtOgreGP.h"
 #include "BtOgrePG.h"
+
+/* std iñludes */
+ #include <stdio.h>
+ #include <string>
+#include <vector>
