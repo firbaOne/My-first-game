@@ -19,6 +19,8 @@ public:
 	void transform(Ogre::Quaternion, Ogre::Vector3);
 	Ogre::SceneNode * getSceneNode() { return mSceneNode;}
 	Ogre::Entity * getEntity() {return mEntity;}
+	void setScale(Ogre::Vector3 scale);
+	//void setScale(btVector3 scale){setScale(BtOgre::Convert::toOgre(scale));}
 private:
 	Ogre::SceneNode * mSceneNode;
 	Ogre::Entity *mEntity;

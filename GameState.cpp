@@ -20,7 +20,7 @@ GameState::GameState()
 #ifdef DEBUG
     m_bSettingsMode     = false;
 #endif
-
+	isInitialized = false;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -58,6 +58,7 @@ void GameState::enter()
     buildGUI();
 
     createScene();
+	isInitialized = true;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -65,7 +66,8 @@ void GameState::enter()
 bool GameState::pause()
 {
     OgreFramework::getSingletonPtr()->mLog->logMessage("Pausing GameState...");
-
+	OgreFramework::getSingleton().mSoundManager->destroyAllSounds();
+	CEGUI::WindowManager::getSingleton().destroyAllWindows();
     return true;
 }
 
@@ -111,7 +113,7 @@ void GameState::createScene()
 	TeamManager * team1 = new TeamManager("red", "Team01");
 	team1->addViper(player);
 	Viper * player2 = new Viper(mSceneMgr, mWorld, Ogre::Vector3(100, 0,0));
-	player2->transform(Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
+	//player2->transform(Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
 	TeamManager * team2 = new TeamManager("blue", "Team02");
 	team2->addViper(player2);
 	OgreFramework::getSingleton().mSoundManager->createSound("MenuBackgroundMusic", "background_music.ogg", false, true, true) ;
@@ -121,9 +123,19 @@ void GameState::createScene()
 	CEGUI::System::getSingleton().setGUISheet(guiRoot);
 	CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("Root/Life");
 	bar->setProgress(1.0f);
+	generateEnvironment();
+	
+
 #ifndef DEBUG
 	wmgr.destroyWindow("Root/Debug");
 #endif
+}
+void GameState::generateEnvironment()
+{
+	MyEntity * ent = new MyEntity("asteroid1.mesh", mSceneMgr, mWorld, Ogre::Vector3(100, 100, 100));
+	ent->setScale(Ogre::Vector3(10,20,30));
+	
+
 }
 void GameState::loadActionKeys()
 {
@@ -291,7 +303,7 @@ void GameState::getInput()
 			mCamera->setOrientation(mCameraDefaultOrientation);
 		}
 		Ogre::Vector3 dir = mCamera->getDerivedDirection();
-		dir.normalise();
+		//dir.normalise();
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionLeft))
             m_TranslateVector.x = -m_MoveScale;
 
@@ -301,17 +313,17 @@ void GameState::getInput()
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionForward))
 		{
 			if(player->getDirection() != Ogre::Vector3::ZERO)
-			{player->setDirection((player->getDirection() * player->getSpeed()) + dir* (m_FrameEvent.timeSinceLastFrame/1000) );}
+			{player->setDirection((player->getDirection() * player->getSpeed()) + dir* (m_FrameEvent.timeSinceLastFrame/1000) *Viper::acceleration*2);}
 			else
 			{player->setDirection(dir);}
-			player->setSpeed(player->getSpeed() + Viper::acceleration * (m_FrameEvent.timeSinceLastFrame/1000));	
+			//player->setSpeed(player->getSpeed() + Viper::acceleration * (m_FrameEvent.timeSinceLastFrame/1000));	
 		}
 
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionBackward))
            {
-				player->setDirection((player->getDirection() * player->getSpeed()) + dir* (m_FrameEvent.timeSinceLastFrame/1000));
+				player->setDirection((player->getDirection() * player->getSpeed()) - dir* (m_FrameEvent.timeSinceLastFrame/1000) *Viper::acceleration*2);
 				
-				player->setSpeed(player->getSpeed() - (Viper::acceleration/2) * (m_FrameEvent.timeSinceLastFrame/1000));
+				//player->setSpeed(player->getSpeed() - (Viper::acceleration/2) * (m_FrameEvent.timeSinceLastFrame/1000));
 					
 			}
 
@@ -348,6 +360,10 @@ void GameState::update(double timeSinceLastFrame)
 	{
 		cas =0;
 	}
+	//mWorld->performDiscreteCollisionDetection();
+	if(isInitialized)
+	{
+
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 	CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("Root/Life");
 	bar->setProgress(player->getLife()/player->defaultLife);
@@ -365,12 +381,15 @@ void GameState::update(double timeSinceLastFrame)
 	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getAverageFPS());
 	t = "FPS: ";
 	t.append(txt1);
-	t.append("\nBatches: ");
+	/*t.append("\nBatches: ");
 	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getBatchCount());
+	t.append(txt1);
 	t.append("\nTriangles: ");
 	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getTriangleCount());
+	t.append(txt1);*/
 	stats->setText(t);
 #endif
+	}
     getInput();
     moveCamera();
 }

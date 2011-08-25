@@ -70,6 +70,8 @@ private:
 	Ogre::SceneNode *			mCameraNode;
 	bool						m_bLMouseDown, m_bRMouseDown;
 	Ogre::Quaternion			mCameraDefaultOrientation;
+	bool						isInitialized;
+	void generateEnvironment();
 #ifdef DEBUG
 	bool						m_bSettingsMode; /* I will use it as Debug Mode */
 #endif

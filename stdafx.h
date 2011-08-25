@@ -47,11 +47,12 @@
 /*Physics */
 #include "btBulletDynamicsCommon.h"
 #include "btBulletCollisionCommon.h"
+#include "BulletCollision/CollisionDispatch/btGhostObject.h"
 #include "BtOgreExtras.h"
 #include "BtOgreGP.h"
 #include "BtOgrePG.h"
 
-/* std iñludes */
+/* std includes */
  #include <stdio.h>
  #include <string>
 #include <vector>

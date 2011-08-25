@@ -10,15 +10,15 @@ public:
 	Viper() {}
 	Viper(Ogre::SceneManager *sceneMgr, btCollisionWorld * world ,Ogre::Vector3 position = Ogre::Vector3::ZERO, std::string name = "");
 	~Viper() {}
-	static const int maxSpeed = 100;
+	static const int maxSpeed = 50;
 	static const int defaultLife = 1000;
-	static const int acceleration = 10;
+	static const int acceleration = 20;
 	static const std::string mMeshName;
 	void destruct();
 	void shoot();
 	void setTeam(TeamManager * team) { mTeam = team;}
 	Ogre::Vector3 getDirection(){return mDirection;}
-	void setDirection(Ogre::Vector3  vec) {mDirection = vec; mDirection.normalise();}
+	void setDirection(Ogre::Vector3  vec) {mDirection = vec; mDirection.normalise(); this->setSpeed(vec.length());}
 	double getSpeed(){return mSpeed;}
 	void setSpeed(double speed); // defined in Viper.cpp
 	bool getAccelerating() {return mAccelerating;}
@@ -33,8 +33,11 @@ private:
 	int mScore;
 	std::string mName;
 	TeamManager * mTeam;
+	//btPairCachingGhostObject * mColObject;
 	bool mAccelerating;
 	virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
+	void checkCollisions();
+	
 
 };
 #endif

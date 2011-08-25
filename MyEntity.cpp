@@ -31,6 +31,7 @@ MyEntity::MyEntity(std::string meshFileName, Ogre::SceneManager *sceneMgr, btCol
 	this->transform(Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
 }
 
+
 void MyEntity::transform(Ogre::Quaternion  q, Ogre::Vector3  v)
 {
 	mSceneNode->translate(v, Ogre::Node::TransformSpace::TS_WORLD);
@@ -38,7 +39,11 @@ void MyEntity::transform(Ogre::Quaternion  q, Ogre::Vector3  v)
 	mColObject->setWorldTransform(btTransform(BtOgre::Convert::toBullet(mSceneNode->_getDerivedOrientation()), BtOgre::Convert::toBullet(mSceneNode->_getDerivedPosition())));
 	
 }
-
+void MyEntity::setScale(Ogre::Vector3 scale)
+{
+	mSceneNode->setScale(scale);
+	mShape->setLocalScaling(BtOgre::Convert::toBullet(scale));
+}
 MyEntity::~MyEntity()
 {
 	mSceneNode->getParentSceneNode()->removeAndDestroyAllChildren();
