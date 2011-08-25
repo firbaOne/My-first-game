@@ -301,7 +301,7 @@ void GameState::getInput()
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionForward))
 		{
 			if(player->getDirection() != Ogre::Vector3::ZERO)
-			{player->setDirection((player->getDirection() * player->getSpeed()) + dir* m_FrameEvent.timeSinceLastFrame );}
+			{player->setDirection((player->getDirection() * player->getSpeed()) + dir* (m_FrameEvent.timeSinceLastFrame/1000) );}
 			else
 			{player->setDirection(dir);}
 			player->setSpeed(player->getSpeed() + Viper::acceleration * (m_FrameEvent.timeSinceLastFrame/1000));	
@@ -309,7 +309,7 @@ void GameState::getInput()
 
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionBackward))
            {
-				player->setDirection((player->getDirection() * player->getSpeed()) + dir* m_FrameEvent.timeSinceLastFrame );
+				player->setDirection((player->getDirection() * player->getSpeed()) + dir* (m_FrameEvent.timeSinceLastFrame/1000));
 				
 				player->setSpeed(player->getSpeed() - (Viper::acceleration/2) * (m_FrameEvent.timeSinceLastFrame/1000));
 					
