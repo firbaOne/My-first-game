@@ -23,6 +23,7 @@ MyEntity::MyEntity(std::string meshFileName, Ogre::SceneManager *sceneMgr, btCol
 	}
 	delete mConverter;
 	mColObject = new btCollisionObject();
+	mShape->setMargin(0.f);
 	mColObject->setCollisionShape(mShape);
 	mWorld->addCollisionObject(mColObject);
 	// some strange bug maybe, but the commented line not working, so I must transform created entity in order to synchronize graphical and physical position and rotation 

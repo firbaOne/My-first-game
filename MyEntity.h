@@ -14,7 +14,7 @@ public:
 	MyEntity(): mSceneNode(0), mEntity(0), mShape(0), mColObject(0) {}
 	MyEntity(std::string meshFileName, Ogre::SceneManager *sceneMgr, btCollisionWorld * world, Ogre::Vector3 position = Ogre::Vector3::ZERO ,CollisionShapes shape = CONVEX );
 	//MyEntity(std::string meshFileName,Ogre::SceneManager * sceneMgr, btCollisionWorld * world, Ogre::SceneNode * parentSceneNode ,CollisionShapes shape);
-	~MyEntity();
+	virtual ~MyEntity();
 	void transform(btTransform * trans);
 	void transform(Ogre::Quaternion, Ogre::Vector3);
 	Ogre::SceneNode * getSceneNode() { return mSceneNode;}

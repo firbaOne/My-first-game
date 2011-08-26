@@ -3,7 +3,7 @@
 unsigned int TeamManagerCounter::TeamCount = 0;
 std::vector<TeamManager *> TeamManagerCounter::TeamVector;
 
-TeamManager::TeamManager(Ogre::String material, std::string teamName)
+TeamManager::TeamManager(Ogre::String material,GameState * state,  std::string teamName)
 {
 	
 	mID = ++TeamManagerCounter::TeamCount;
@@ -12,6 +12,7 @@ TeamManager::TeamManager(Ogre::String material, std::string teamName)
 	if(teamName == "")
 		teamName = "team " + TeamManagerCounter::TeamCount;
 	mName = teamName;
+	mState = state;
 }
 void TeamManager::addViper(Viper * viper)
 {

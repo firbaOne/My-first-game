@@ -49,7 +49,7 @@ public:
    
 
 	void update(double timeSinceLastFrame);
-
+	void playerDestroyed(Viper * viper);
 private:
 	Ogre::SceneNode*			mOgreHeadNode;
 	Ogre::Entity*				mOgreHeadEntity;

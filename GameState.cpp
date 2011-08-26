@@ -11,7 +11,8 @@ using namespace Ogre;
 GameState::GameState()
 {
     m_MoveSpeed			= 0.1f;
-    m_RotateSpeed		= -0.05f;
+   // m_RotateSpeed		= -0.05f;
+	m_RotateSpeed       = 60;
 
     m_bLMouseDown       = false;
     m_bRMouseDown       = false;
@@ -110,11 +111,11 @@ void GameState::createScene()
 	Ogre::SceneNode * playerSceneNode = player->getSceneNode();
 	mCameraNode = playerSceneNode->createChildSceneNode("CameraNode", Ogre::Vector3(-4, 5, 0));
 	mCameraNode->attachObject(mCamera);
-	TeamManager * team1 = new TeamManager("red", "Team01");
+	TeamManager * team1 = new TeamManager("red",this,  "Team01");
 	team1->addViper(player);
 	Viper * player2 = new Viper(mSceneMgr, mWorld, Ogre::Vector3(100, 0,0));
 	//player2->transform(Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
-	TeamManager * team2 = new TeamManager("blue", "Team02");
+	TeamManager * team2 = new TeamManager("blue",this, "Team02");
 	team2->addViper(player2);
 	OgreFramework::getSingleton().mSoundManager->createSound("MenuBackgroundMusic", "background_music.ogg", false, true, true) ;
 	OgreFramework::getSingleton().mSoundManager->getSound("MenuBackgroundMusic")->play();
@@ -132,7 +133,7 @@ void GameState::createScene()
 }
 void GameState::generateEnvironment()
 {
-	MyEntity * ent = new MyEntity("asteroid1.mesh", mSceneMgr, mWorld, Ogre::Vector3(100, 100, 100));
+	MyEntity * ent = new MyEntity("asteroid1.mesh", mSceneMgr, mWorld, Ogre::Vector3(500, 100, 100));
 	ent->setScale(Ogre::Vector3(10,20,30));
 	
 
@@ -190,7 +191,6 @@ bool GameState::keyReleased(const OIS::KeyEvent &keyEventRef)
 
 bool GameState::mouseMoved(const OIS::MouseEvent &evt)
 {
-
     if(m_bRMouseDown)
     {
         mCamera->yaw(Degree(evt.state.X.rel * -0.1f));
@@ -199,10 +199,11 @@ bool GameState::mouseMoved(const OIS::MouseEvent &evt)
 	else
 	{
 		/*Ogre::Matrix3  mat =  Ogre::Matrix3();
-		mat.FromEulerAnglesXYZ(Ogre::Degree(0), Ogre::Degree(evt.state.X.rel * m_RotScale),Ogre::Degree(evt.state.Y.rel * m_RotScale));
+		mat.FromEulerAnglesXYZ(Ogre::Degree(0), Ogre::Degree(evt.state.X.rel * -0.1f),Ogre::Degree(evt.state.Y.rel *  -0.1f));
 		Ogre::Quaternion quat = Ogre::Quaternion();
 		quat.FromRotationMatrix(mat);
 		player->transform(quat, Ogre::Vector3::ZERO);*/
+		player->setLastOrientation(player->getSceneNode()->getOrientation()); // for case that new rotation will cause collision
 		player->getSceneNode()->yaw(Degree(evt.state.X.rel * -0.1f));
 		player->getSceneNode()->roll(Degree(evt.state.Y.rel * -0.1f));
 	}
@@ -251,7 +252,7 @@ bool GameState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 
 void GameState::onLeftPressed(const OIS::MouseEvent &evt)
 {
-    if(mCurrentObject)
+/*    if(mCurrentObject)
     {
         mCurrentObject->showBoundingBox(false);
         mCurrentEntity->getSubEntity(1)->setMaterial(mOgreHeadMat);
@@ -277,7 +278,7 @@ void GameState::onLeftPressed(const OIS::MouseEvent &evt)
             mCurrentEntity->getSubEntity(1)->setMaterial(mOgreHeadMatHigh);
             break;
         }
-    }
+    }*/
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -305,10 +306,10 @@ void GameState::getInput()
 		Ogre::Vector3 dir = mCamera->getDerivedDirection();
 		//dir.normalise();
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionLeft))
-            m_TranslateVector.x = -m_MoveScale;
+           player->getSceneNode()->pitch(Degree(m_RotateSpeed* (m_FrameEvent.timeSinceLastFrame/1000) ));
 
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionRight))
-            m_TranslateVector.x = m_MoveScale;
+             player->getSceneNode()->pitch(Degree(-m_RotateSpeed* (m_FrameEvent.timeSinceLastFrame/1000) ));
 
         if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionForward))
 		{
@@ -360,7 +361,7 @@ void GameState::update(double timeSinceLastFrame)
 	{
 		cas =0;
 	}
-	//mWorld->performDiscreteCollisionDetection();
+	mWorld->performDiscreteCollisionDetection();
 	if(isInitialized)
 	{
 
@@ -403,6 +404,11 @@ void GameState::buildGUI()
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
-
+void GameState::playerDestroyed(Viper *viper)
+{
+	if(viper == player)
+	popAppState();
+	//pushAppState(findByName("PauseState"));
+}
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
