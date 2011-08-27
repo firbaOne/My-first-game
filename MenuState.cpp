@@ -37,7 +37,7 @@ void MenuState::enter()
     OgreFramework::getSingletonPtr()->mViewport->setCamera(mCamera);
 	/* CEGUI initialization */	
 	CEGUI::MouseCursor::getSingleton().show();
-	CEGUI::SchemeManager::getSingleton().create("TaharezLook.scheme");
+	
 	CEGUI::System::getSingleton().setDefaultMouseCursor("TaharezLook", "MouseArrow");
 	CEGUI::MouseCursor::getSingleton().setImage( CEGUI::System::getSingleton().getDefaultMouseCursor());
     createScene();

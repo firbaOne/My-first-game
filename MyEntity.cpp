@@ -30,15 +30,17 @@ MyEntity::MyEntity(std::string meshFileName, Ogre::SceneManager *sceneMgr, btCol
 	// not working even with _getDerivedOrientation() and _getDerivedPosition()
 	//mColObject->setWorldTransform(btTransform(BtOgre::Convert::toBullet(mSceneNode->getOrientation()), BtOgre::Convert::toBullet(mSceneNode->getPosition())));
 	this->transform(Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
+
 }
 
 
 void MyEntity::transform(Ogre::Quaternion  q, Ogre::Vector3  v)
 {
+
 	mSceneNode->translate(v, Ogre::Node::TransformSpace::TS_WORLD);
 	mSceneNode->rotate(q, Ogre::Node::TransformSpace::TS_WORLD);
 	mColObject->setWorldTransform(btTransform(BtOgre::Convert::toBullet(mSceneNode->_getDerivedOrientation()), BtOgre::Convert::toBullet(mSceneNode->_getDerivedPosition())));
-	
+
 }
 void MyEntity::setScale(Ogre::Vector3 scale)
 {
@@ -47,8 +49,10 @@ void MyEntity::setScale(Ogre::Vector3 scale)
 }
 MyEntity::~MyEntity()
 {
-	mSceneNode->getParentSceneNode()->removeAndDestroyAllChildren();
+	mSceneNode->detachObject(mEntity);
 	mSceneMgr->destroyEntity(mEntity);
+	//mSceneNode->getParentSceneNode()->removeAndDestroyAllChildren();
+	//mSceneNode = 0;
 	mWorld->removeCollisionObject(mColObject);
 	delete mShape;
 	delete mColObject;

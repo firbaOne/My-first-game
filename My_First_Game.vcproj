@@ -285,6 +285,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MyFirstGameForwardDeclaration.h"
+				>
+			</File>
+			<File
 				RelativePath=".\PauseState.hpp"
 				>
 			</File>

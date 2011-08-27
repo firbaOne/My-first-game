@@ -37,7 +37,7 @@ void DemoApp::startDemo()
 	GameState::create(mAppStateManager, "GameState");
     PauseState::create(mAppStateManager, "PauseState");
 
-	mAppStateManager->start(mAppStateManager->findByName("MenuState"));
+	mAppStateManager->start(mAppStateManager->findByName("GameState")); // due to debuging in production mode switch to MenuState
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

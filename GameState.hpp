@@ -7,7 +7,6 @@
 
 #include "AppState.hpp"
 
-
 #include "TeamManager.h"
 
 #define DEBUG
@@ -49,7 +48,9 @@ public:
    
 
 	void update(double timeSinceLastFrame);
-	void playerDestroyed(Viper * viper);
+	bool playerDestroyed(Viper * viper);
+	Viper * findViperByCollisionObject(btCollisionObject * colObj)
+	{if(team1->getViperByCollisionObject(colObj) )return team1->getViperByCollisionObject(colObj); return team2->getViperByCollisionObject(colObj);}
 private:
 	Ogre::SceneNode*			mOgreHeadNode;
 	Ogre::Entity*				mOgreHeadEntity;
@@ -70,8 +71,13 @@ private:
 	Ogre::SceneNode *			mCameraNode;
 	bool						m_bLMouseDown, m_bRMouseDown;
 	Ogre::Quaternion			mCameraDefaultOrientation;
-	bool						isInitialized;
+	bool						isPlayerAlive;
 	void generateEnvironment();
+	void checkCollisions();
+	void checkCollisionForViper(Viper * viper);
+	void destroyDeadVipers();
+	void destroyViper(Viper * viper);
+	void updateAllVipers();
 #ifdef DEBUG
 	bool						m_bSettingsMode; /* I will use it as Debug Mode */
 #endif
@@ -92,6 +98,8 @@ private:
 	/* player variables */
 	Viper * player;
 	Ogre::Quaternion * playerQuat;
+	TeamManager * team1; // player team
+	TeamManager * team2; // enemy team
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
