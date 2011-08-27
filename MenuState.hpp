@@ -44,6 +44,7 @@ private:
 	bool m_bQuit;
 	std::vector<CEGUI::Combobox *> comboboxs ;
 	std::vector<CEGUI::Window *>  staticTexts ;
+
 	
 };
 

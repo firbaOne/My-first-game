@@ -21,8 +21,10 @@ PauseState::PauseState()
 void PauseState::enter()
 {
     OgreFramework::getSingletonPtr()->mLog->logMessage("Entering PauseState...");
-
-    mSceneMgr = OgreFramework::getSingletonPtr()->mRoot->createSceneManager(ST_GENERIC, "PauseSceneMgr");
+	if(!OgreFramework::getSingletonPtr()->mRoot->hasSceneManager("PauseSceneMgr"))
+		mSceneMgr = OgreFramework::getSingletonPtr()->mRoot->createSceneManager(ST_GENERIC, "PauseSceneMgr");
+	else
+		mSceneMgr = OgreFramework::getSingletonPtr()->mRoot->getSceneManager("PauseSceneMgr");
     mSceneMgr->setAmbientLight(Ogre::ColourValue(0.7f, 0.7f, 0.7f));
 
     mCamera = mSceneMgr->createCamera("PauseCam");
@@ -51,24 +53,32 @@ void PauseState::enter()
 void PauseState::createScene()
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
-	CEGUI::Window *guiRoot = wmgr.loadWindowLayout("PauseMenu.layout"); 
-	CEGUI::System::getSingleton().setGUISheet(guiRoot);
+	if(wmgr.isWindowPresent("PauseState"))
+	{
+		CEGUI::System::getSingleton().setGUISheet(wmgr.getWindow("PauseState"));
+		wmgr.getWindow("PauseState")->setVisible(true);
+	}
+	else
+	{
+		CEGUI::Window *guiRoot = wmgr.loadWindowLayout("PauseMenu.layout"); 
+		CEGUI::System::getSingleton().setGUISheet(guiRoot);
+	}
 	OgreFramework::getSingleton().mSoundManager->setSceneManager(mSceneMgr);
 	OgreFramework::getSingleton().mSoundManager->createSound("MenuBackgroundMusic", "background_music.ogg", false, true, true) ;
 	OgreFramework::getSingleton().mSoundManager->getSound("MenuBackgroundMusic")->play();
 	
 	/* CEGUI event bidnings */
-	CEGUI::PushButton* pQuitButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Menu/buttonQuit");
+	CEGUI::PushButton* pQuitButton = (CEGUI::PushButton *)wmgr.getWindow("PauseState/Menu/buttonQuit");
 	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&PauseState::quit, this));
 
-	CEGUI::FrameWindow * pFrameWindow = (CEGUI::FrameWindow *)wmgr.getWindow("Root/Menu");
+	CEGUI::FrameWindow * pFrameWindow = (CEGUI::FrameWindow *)wmgr.getWindow("PauseState/Menu");
 	pQuitButton = pFrameWindow->getCloseButton();
 	pQuitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&PauseState::quit, this));
 
-	CEGUI::PushButton* pOptionsButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Menu/buttonMenu");
+	CEGUI::PushButton* pOptionsButton = (CEGUI::PushButton *)wmgr.getWindow("PauseState/Menu/buttonMenu");
 	pOptionsButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&PauseState::showMainMenu, this));
 
-	pOptionsButton = (CEGUI::PushButton *)wmgr.getWindow("Root/Menu/buttonContinue");
+	pOptionsButton = (CEGUI::PushButton *)wmgr.getWindow("PauseState/Menu/buttonContinue");
 	pOptionsButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&PauseState::Continue, this));
 }
 
@@ -80,8 +90,8 @@ bool PauseState::quit(const CEGUI::EventArgs &e)
 }
 bool PauseState::Continue(const CEGUI::EventArgs &e)
 {
-	CEGUI::WindowManager::getSingleton().destroyAllWindows();
-	CEGUI::MouseCursor::getSingleton().hide();
+	//CEGUI::WindowManager::getSingleton().destroyAllWindows();
+	//CEGUI::MouseCursor::getSingleton().hide();
 	popAppState();
 	return true;
 }
@@ -89,8 +99,9 @@ bool PauseState::showMainMenu(const CEGUI::EventArgs &e)
 {
 	/*CEGUI::WindowManager::getSingleton().destroyAllWindows();
 	CEGUI::MouseCursor::getSingleton().hide();*/
-	findByName("GameState")->exit();
-	changeAppState(findByName("MenuState"));
+	/*findByName("GameState")->exit();
+	changeAppState(findByName("MenuState"));*/
+	popAllAndPushAppState(findByName("MenuState"));
 	return true;
 }
 void PauseState::exit()
@@ -98,10 +109,11 @@ void PauseState::exit()
     OgreFramework::getSingletonPtr()->mLog->logMessage("Leaving PauseState...");
 	mInject = false;
     mSceneMgr->destroyCamera(mCamera);
-    if(mSceneMgr)
-        OgreFramework::getSingletonPtr()->mRoot->destroySceneManager(mSceneMgr);
+   /* if(mSceneMgr)
+        OgreFramework::getSingletonPtr()->mRoot->destroySceneManager(mSceneMgr);*/
 	OgreFramework::getSingleton().mSoundManager->destroyAllSounds();
-	CEGUI::WindowManager::getSingleton().destroyAllWindows();
+	//CEGUI::WindowManager::getSingleton().destroyAllWindows();
+	CEGUI::WindowManager::getSingleton().getWindow("PauseState")->setVisible(false);
 	CEGUI::MouseCursor::getSingleton().hide();
 
 }
@@ -112,7 +124,7 @@ bool PauseState::keyPressed(const OIS::KeyEvent &keyEventRef)
 {
   
     OgreFramework::getSingletonPtr()->keyPressed(keyEventRef);
-
+	if(keyEventRef.key == OIS::KC_ESCAPE) this->Continue(CEGUI::EventArgs());
     return true;
 }
 

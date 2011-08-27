@@ -67,8 +67,8 @@ void GameState::enter()
 bool GameState::pause()
 {
     OgreFramework::getSingletonPtr()->mLog->logMessage("Pausing GameState...");
-	OgreFramework::getSingleton().mSoundManager->destroyAllSounds();
-	CEGUI::WindowManager::getSingleton().destroyAllWindows();
+	OgreFramework::getSingleton().mSoundManager->pauseAllSounds();
+	CEGUI::WindowManager::getSingleton().getWindow("GameState")->setVisible(false);
     return true;
 }
 
@@ -78,7 +78,13 @@ void GameState::resume()
 {
     OgreFramework::getSingletonPtr()->mLog->logMessage("Resuming GameState...");
 
-    buildGUI();
+    //buildGUI();
+	OgreFramework::getSingleton().mSoundManager->resumeAllPausedSounds();
+	
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+	//CEGUI::Window *guiRoot = wmgr.loadWindowLayout("game.layout"); 
+	CEGUI::System::getSingleton().setGUISheet(CEGUI::WindowManager::getSingleton().getWindow("GameState"));
+	wmgr.getWindow("GameState")->setVisible(true);
 
     OgreFramework::getSingletonPtr()->mViewport->setCamera(mCamera);
 	OgreFramework::getSingletonPtr()->mViewport->setBackgroundColour(Ogre::ColourValue(0.f, 0.f, 0.f));
@@ -121,18 +127,18 @@ void GameState::createScene()
 	//player2->transform(Ogre::Quaternion::IDENTITY, Ogre::Vector3::ZERO);
 	team2 = new TeamManager("blue",this,  mSceneMgr, mWorld,"Team02");
 	team2->addViper(Ogre::Vector3(100, 0,0));
-	OgreFramework::getSingleton().mSoundManager->createSound("MenuBackgroundMusic", "background_music.ogg", false, true, true) ;
-	OgreFramework::getSingleton().mSoundManager->getSound("MenuBackgroundMusic")->play();
+	OgreFramework::getSingleton().mSoundManager->createSound("GameBackgroundMusic", "background_music.ogg", false, true, true) ;
+	OgreFramework::getSingleton().mSoundManager->getSound("GameBackgroundMusic")->play();
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 	CEGUI::Window *guiRoot = wmgr.loadWindowLayout("game.layout"); 
 	CEGUI::System::getSingleton().setGUISheet(guiRoot);
-	CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("Root/Life");
+	CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("GameState/Life");
 	bar->setProgress(1.0f);
 	generateEnvironment();
 	
 
 #ifndef DEBUG
-	wmgr.destroyWindow("Root/Debug");
+	wmgr.destroyWindow("GameState/Debug");
 #endif
 }
 
@@ -382,9 +388,9 @@ void GameState::update(double timeSinceLastFrame)
 	{
 
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
-	CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("Root/Life");
+	CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("GameState/Life");
 	bar->setProgress(player->getLife()/player->defaultLife);
-	CEGUI::Window * text = wmgr.getWindow("Root/Speed");
+	CEGUI::Window * text = wmgr.getWindow("GameState/Speed");
 	char txt[20];
 	sprintf(txt, "%.2f", player->getSpeed());
 	std::string t = "Speed: ";
@@ -393,7 +399,7 @@ void GameState::update(double timeSinceLastFrame)
 #ifdef DEBUG
 	if(m_bSettingsMode)
 	mDebugDrawer->step();
-	CEGUI::Window * stats = wmgr.getWindow("Root/Debug");
+	CEGUI::Window * stats = wmgr.getWindow("GameState/Debug");
 	char txt1[100];
 	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getAverageFPS());
 	t = "FPS: ";
@@ -424,7 +430,7 @@ bool GameState::playerDestroyed(Viper *viper)
 {
 	if(viper == player)
 	{
-		CEGUI::Window *win = CEGUI::WindowManager::getSingletonPtr()->getWindow("Root/GameOver");
+		CEGUI::Window *win = CEGUI::WindowManager::getSingletonPtr()->getWindow("GameState/GameOver");
 		win->setVisible(true);
 		//team1->destroyAllVipers();
 		//team2->destroyAllVipers();
