@@ -86,6 +86,9 @@ private:
 	OIS::KeyCode mActionBackward;
 	OIS::KeyCode mActionLeft;
 	OIS::KeyCode mActionRight;
+	OIS::KeyCode mActionUp;
+	OIS::KeyCode mActionDown;
+	OIS::KeyCode mActionStop;
 
 	/* Bullet variables */
 	btCollisionWorld *mWorld;

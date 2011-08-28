@@ -161,6 +161,9 @@ void GameState::loadActionKeys()
 	mActionBackward = OIS::KC_S;
 	mActionLeft = OIS::KC_A;
 	mActionRight = OIS::KC_D;
+	mActionUp = OIS::KC_Q;
+	mActionDown = OIS::KC_E;
+	mActionStop = OIS::KC_SPACE;
 }
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -346,7 +349,22 @@ void GameState::getInput()
 				//player->setSpeed(player->getSpeed() - (Viper::acceleration/2) * (m_FrameEvent.timeSinceLastFrame/1000));
 					
 			}
-
+		dir = player->getSceneNode()->_getDerivedOrientation().yAxis();
+		if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionUp))
+		{
+			player->setDirection((player->getDirection() * player->getSpeed()) + dir* (m_FrameEvent.timeSinceLastFrame/1000) *Viper::acceleration*2);
+		}
+		if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionDown))
+		{
+			player->setDirection((player->getDirection() * player->getSpeed()) - dir* (m_FrameEvent.timeSinceLastFrame/1000) *Viper::acceleration*2);
+		}
+		if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(mActionStop))
+		{
+			if(player->getSpeed() > 0)
+				player->setSpeed((player->getSpeed()) - Viper::acceleration* (m_FrameEvent.timeSinceLastFrame/1000) );
+			else
+				player->setSpeed(0);
+		}
 		if(m_bRMouseDown)
 		{
 			mCamera->setOrientation(quat);
@@ -399,21 +417,24 @@ void GameState::update(double timeSinceLastFrame)
 #ifdef DEBUG
 	if(m_bSettingsMode)
 	mDebugDrawer->step();
+	Ogre::RenderTarget::FrameStats st = OgreFramework::getSingleton().mRenderWnd->getStatistics();
 	CEGUI::Window * stats = wmgr.getWindow("GameState/Debug");
 	char txt1[100];
-	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getAverageFPS());
+	sprintf(txt1, "%.2f", st.avgFPS);
 	t = "FPS: ";
 	t.append(txt1);
 	/*t.append("\nBatches: ");
-	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getBatchCount());
+	sprintf(txt1, "%.2f", st.batchCount);
 	t.append(txt1);
 	t.append("\nTriangles: ");
-	sprintf(txt1, "%.2f", OgreFramework::getSingleton().mRenderWnd->getTriangleCount());
+	sprintf(txt1, "%.2f", st.triangleCount);
 	t.append(txt1);*/
+	
 	stats->setText(t);
 #endif
-	}
+	
     getInput();
+	}
     moveCamera();
 }
 
@@ -498,7 +519,6 @@ void GameState::checkCollisionForViper(Viper * viper)
 //YourContext foo;
 ContactSensorCallback callback(*viper->getCollisionObject(), viper, m_FrameEvent);
 mWorld->contactTest(viper->getCollisionObject(),callback);
-//this->transform(Ogre::Quaternion::IDENTITY, -mDirection*mSpeed*evt.timeSinceLastFrame);
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -510,11 +530,6 @@ void GameState::checkCollisions()
 	{
 			checkCollisionForViper( (*it));
 	}
-	/* vipers = team2->getAllVipers();
-	  for(std::vector<Viper *>::iterator it = vipers.begin(); it != vipers.end(); it++)
-	{
-			checkCollisionForViper( (*it));
-	}*/
  }
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
