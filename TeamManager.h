@@ -7,6 +7,7 @@ class TeamManager
 public:
 	TeamManager() {}
 	TeamManager(Ogre::String material, GameState * state, Ogre::SceneManager *sceneMgr, btCollisionWorld * world ,std::string teamName = "");
+	~TeamManager();
 	void addViper(Ogre::Vector3 position = Ogre::Vector3::ZERO, std::string name = "");
 	GameState * getState(){return mState;}
 	std::vector<Viper *> getAllVipers(){return mVipers;}

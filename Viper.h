@@ -2,6 +2,7 @@
 #ifndef __VIPER_H__
 #define __VIPER_H__
 #include "MyEntity.h"
+#include "ViperBullet.h"
 //class OgreFramework;
 //class GameState;
 //#include "AdvancedOgreFramework.hpp" // due to destructor
@@ -13,10 +14,10 @@ public:
 	Viper() {}
 	Viper(Ogre::SceneManager *sceneMgr, btCollisionWorld * world ,TeamManager *team , Ogre::Vector3 position = Ogre::Vector3::ZERO, Ogre::String materialName = "", std::string name = "");
 	~Viper() ;
-	static const int maxSpeed = 50;
+	static const int maxSpeed = 100;
 	static const int defaultLife = 1000;
 	static const int crashDamageConstant = 30;
-	static const int acceleration = 20;
+	static const int acceleration = 40;
 	static const std::string mMeshName;
 	//void destroy();
 	void shoot();
@@ -35,6 +36,9 @@ public:
 	std::string getName() {return mName;}
 	void setName(std::string name){mName = name;}
 	virtual bool update(const Ogre::FrameEvent& evt);
+	void updateBullets(const Ogre::FrameEvent& evt);
+	void removeBullet(ViperBullet * bullet);
+	std::vector<ViperBullet *> getBullets() {return mBullets;}
 private: 
 	Ogre::Vector3 mDirection;
 	double mSpeed;
@@ -42,6 +46,7 @@ private:
 	int mScore;
 	std::string mName;
 	TeamManager * mTeam;
+	std::vector<ViperBullet *> mBullets;
 	//GameState * mState;
 	//btPairCachingGhostObject * mColObject;
 	const btCollisionObject * lastCollidedWith;

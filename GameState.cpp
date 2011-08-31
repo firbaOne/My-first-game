@@ -22,6 +22,7 @@ GameState::GameState()
     m_bSettingsMode     = false;
 #endif
 	isPlayerAlive = true;
+	playerShooting = false;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -54,11 +55,13 @@ void GameState::enter()
     solver = new btSequentialImpulseConstraintSolver;
     mWorld = new btCollisionWorld(dispatcher,broadphase,collisionConfiguration);
 	OgreFramework::getSingleton().mSoundManager->setSceneManager(mSceneMgr);
+	isPlayerAlive = true;
 	loadActionKeys();
 
     buildGUI();
 
     createScene();
+	
 
 }
 
@@ -99,6 +102,9 @@ void GameState::exit()
 
     mSceneMgr->destroyCamera(mCamera);
     mSceneMgr->destroyQuery(mRSQ);
+	delete team1;
+	delete team2;
+	//mSceneMgr->getRootSceneNode()->removeAndDestroyAllChildren();
     if(mSceneMgr)
         OgreFramework::getSingletonPtr()->mRoot->destroySceneManager(mSceneMgr);
 	OgreFramework::getSingleton().mSoundManager->destroyAllSounds();
@@ -135,8 +141,39 @@ void GameState::createScene()
 	CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("GameState/Life");
 	bar->setProgress(1.0f);
 	generateEnvironment();
-	
+	// create ManualObject
+	Ogre::ManualObject mo("BulletObject");
+	const float width = 0.2;
+	const float height = 0.5;
+	Ogre::Vector3 vec(width/2, 0, 0);
+	Ogre::Quaternion rot;
+	rot.FromAngleAxis(Ogre::Degree(90), Ogre::Vector3::UNIT_Y);
+	mo.begin("blue", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+	for (int i = 0; i < 2; ++i)
+	{
+		mo.position(-vec.x, height, -vec.z);
+		mo.textureCoord(0, 0);
 
+		mo.position(vec.x, height, vec.z);
+		mo.textureCoord(1, 0);
+
+		mo.position(-vec.x, 0, -vec.z);
+		mo.textureCoord(0, 1);
+
+		mo.position(vec.x, 0, vec.z);
+		mo.textureCoord(1, 1);
+		int offset = i * 4;
+		mo.triangle(offset, offset+3, offset+1);
+		mo.triangle(offset, offset+2, offset+3);
+		vec = rot * vec;
+	}
+	mo.end();
+	mo.convertToMesh("ViperBulletMesh");
+	Ogre::Entity * ent123 = mSceneMgr->createEntity("ViperBulletMesh");
+	//mSceneMgr->getRootSceneNode()->createChildSceneNode()->attachObject(ent123);
+	Ogre::Quaternion quat;
+	quat.FromAngleAxis(Ogre::Degree(90), Ogre::Vector3(0,0,1));
+	//player->getSceneNode()->createChildSceneNode("bullet", Ogre::Vector3(5,0.3,-2.55), quat)->attachObject(ent123);
 #ifndef DEBUG
 	wmgr.destroyWindow("GameState/Debug");
 #endif
@@ -146,8 +183,33 @@ void GameState::createScene()
 
 void GameState::generateEnvironment()
 {
-	MyEntity * ent = new MyEntity("asteroid1.mesh", mSceneMgr, mWorld, Ogre::Vector3(500, 100, 100));
-	ent->setScale(Ogre::Vector3(10,20,30));
+	
+	Ogre::StaticGeometry *sg = mSceneMgr->createStaticGeometry("Asteroids");
+	const int size = 7000;
+    const int amount = 5;
+	sg->setRegionDimensions(Ogre::Vector3(size, size, size));
+	//sg->setOrigin(Ogre::Vector3(-size/2, 0, -size/2));
+	sg->setOrigin(Vector3(-size/2, -size/2, -size/2) + Vector3(0, 0, 0)); // this will center the staticgeometry around the point in 3D space
+	for (int x = -size/2; x < size/2; x += (size/amount))
+	{
+		for (int y = -size/2; y < size/2; y += (size/amount))
+		{
+			for (int z = -size/2; z < size/2; z += (size/amount))
+			{
+					Ogre::Real r = size / (float)amount / 2;
+					Ogre::Vector3 pos(x + Ogre::Math::RangeRandom(-r, r), y + Ogre::Math::RangeRandom(-r, r), z + Ogre::Math::RangeRandom(-r, r));
+					Ogre::Vector3 scale(Ogre::Math::RangeRandom(0.7, 20), Ogre::Math::RangeRandom(0.7, 20), Ogre::Math::RangeRandom(0.7, 20));
+					Ogre::Quaternion orientation;
+					orientation.FromAngleAxis(Ogre::Degree(Ogre::Math::RangeRandom(0, 359)), Ogre::Vector3::UNIT_Y);
+					MyEntity * ent = new MyEntity("asteroid1.mesh", mSceneMgr, mWorld, pos);
+					ent->transform(orientation, Ogre::Vector3::ZERO);
+					ent->setScale(scale);
+					sg->addEntity(ent->getEntity(), pos, orientation, scale);
+			}
+		}
+	}
+	sg->build();
+
 	
 
 }
@@ -195,6 +257,16 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
         return true;
     }
 #endif
+	if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_LEFT))
+    {
+		player->getSceneNode()->getChild("bullet")->translate(Ogre::Vector3(0,-1,0) * (m_FrameEvent.timeSinceLastFrame/1000));
+        return true;
+    }
+	if(OgreFramework::getSingletonPtr()->mKeyboard->isKeyDown(OIS::KC_RIGHT))
+    {
+		player->getSceneNode()->getChild("bullet")->translate(Ogre::Vector3(0,1,0) * (m_FrameEvent.timeSinceLastFrame/1000));
+        return true;
+    }
     return true;
 }
 
@@ -241,6 +313,7 @@ bool GameState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
     if(id == OIS::MB_Left)
     {
         onLeftPressed(evt);
+		playerShooting = true;
         m_bLMouseDown = true;
     }
     else if(id == OIS::MB_Right)
@@ -260,6 +333,7 @@ bool GameState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
     if(id == OIS::MB_Left)
     {
         m_bLMouseDown = false;
+		playerShooting = false;
     }
     else if(id == OIS::MB_Right)
     {
@@ -274,6 +348,7 @@ bool GameState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 
 void GameState::onLeftPressed(const OIS::MouseEvent &evt)
 {
+	
 /*    if(mCurrentObject)
     {
         mCurrentObject->showBoundingBox(false);
@@ -398,6 +473,7 @@ void GameState::update(double timeSinceLastFrame)
 	{
 		cas =0;
 	}
+	if(playerShooting) player->shoot();
 	updateAllVipers();
 	mWorld->performDiscreteCollisionDetection();
 	checkCollisions();
@@ -411,6 +487,7 @@ void GameState::update(double timeSinceLastFrame)
 	CEGUI::Window * text = wmgr.getWindow("GameState/Speed");
 	char txt[20];
 	sprintf(txt, "%.2f", player->getSpeed());
+	//sprintf(txt, "%.2f", player->getSceneNode()->getChild("bullet")->getPosition().y);
 	std::string t = "Speed: ";
 	t.append(txt);
 	text->setText(t);
@@ -453,9 +530,10 @@ bool GameState::playerDestroyed(Viper *viper)
 	{
 		CEGUI::Window *win = CEGUI::WindowManager::getSingletonPtr()->getWindow("GameState/GameOver");
 		win->setVisible(true);
-		//team1->destroyAllVipers();
-		//team2->destroyAllVipers();
 		isPlayerAlive = false;
+		CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+		CEGUI::ProgressBar * bar = (CEGUI::ProgressBar *)wmgr.getWindow("GameState/Life");
+		bar->setProgress(0);
 		return false;
 	}
 	return true;
@@ -501,24 +579,74 @@ void GameState::checkCollisionForViper(Viper * viper)
 		}
 		// do stuff with the collision point
 		// viper cannot fly through other objects
-		viper->transform(Ogre::Quaternion::IDENTITY, -viper->getDirection()*viper->getSpeed()*(evt.timeSinceLastFrame/1000));
-		Ogre::Vector3 vec = viper->getDirection();
-		double rych = viper->getSpeed();
-		viper->getSceneNode()->setOrientation(viper->getLastOrientation());
-		viper->setLife(viper->getLife() - (Viper::crashDamageConstant * viper->getSpeed() ));
-		viper->setSpeed(0);
-		Viper *vp = viper;
-		if(colObj0 == viper->getCollisionObject()) viper->setLastCollidedWith(colObj1);
-		else viper->setLastCollidedWith(colObj0);
+		if(colObj0->getCollisionFlags() != COL_VIPERBULLET && colObj1->getCollisionFlags() != COL_VIPERBULLET)
+		{
+			viper->transform(Ogre::Quaternion::IDENTITY, -viper->getDirection()*viper->getSpeed()*(evt.timeSinceLastFrame/1000));
+			Ogre::Vector3 vec = viper->getDirection();
+			double rych = viper->getSpeed();
+			viper->getSceneNode()->setOrientation(viper->getLastOrientation());
+			viper->setLife(viper->getLife() - (Viper::crashDamageConstant * viper->getSpeed() ));
+			viper->setSpeed(0);
+			Viper *vp = viper;
+			if(colObj0 == viper->getCollisionObject()) viper->setLastCollidedWith(colObj1);
+			else viper->setLastCollidedWith(colObj0);
+		}
+		else // bullet damage
+		{
+			viper->setLife(viper->getLife() - ViperBullet::bulletDamage);
+		}
 		return 0; // not actually sure if return value is used for anything...?
 	}
 };
 
-// USAGE:
-//btRigidBody* tgtBody /* = ... */;
-//YourContext foo;
+viper->setLastCollidedWith(viper->getCollisionObject());
 ContactSensorCallback callback(*viper->getCollisionObject(), viper, m_FrameEvent);
 mWorld->contactTest(viper->getCollisionObject(),callback);
+/* Collision Callback for Bullets */
+	struct ContactBulletCallback : public btCollisionWorld::ContactResultCallback {
+	
+	//! Constructor, pass whatever context you want to have available when processing contacts
+	/*! You may also want to set m_collisionFilterGroup and m_collisionFilterMask
+	 *  (supplied by the superclass) for needsCollision() */
+	ContactBulletCallback(btCollisionObject& tgtBody , ViperBullet * me , const Ogre::FrameEvent& evnt/*, ... */)
+		: btCollisionWorld::ContactResultCallback(), body(tgtBody), bullet(me), evt(evnt) { }
+	
+	btCollisionObject& body; //!< The body the sensor is monitoring
+	ViperBullet * bullet; //!< External information for contact processing
+	const Ogre::FrameEvent& evt;
+	//! If you don't want to consider collisions where the bodies are joined by a constraint, override needsCollision:
+	/*! However, if you use a btCollisionObject for #body instead of a btRigidBody,
+	 *  then this is unnecessary—checkCollideWithOverride isn't available */
+	virtual bool needsCollision(btBroadphaseProxy* proxy) const {
+		// superclass will check m_collisionFilterGroup and m_collisionFilterMask
+		if(!btCollisionWorld::ContactResultCallback::needsCollision(proxy))
+			return false;
+		// if passed filters, may also want to avoid contacts between constraints
+		return body.checkCollideWith(static_cast<btCollisionObject*>(proxy->m_clientObject));
+	}
+	
+	//! Called with each contact for your own processing (e.g. test if contacts fall in within sensor parameters)
+	virtual btScalar addSingleResult(btManifoldPoint& cp,
+		const btCollisionObject* colObj0,int partId0,int index0,
+		const btCollisionObject* colObj1,int partId1,int index1)
+	{
+		btVector3 pt; // will be set to point of collision relative to body
+		if(colObj0==&body) {
+			pt = cp.m_localPointA;
+		} else {
+			assert(colObj1==&body && "body does not match either collision object");
+			pt = cp.m_localPointB;
+		}
+		bullet->setHit(true);
+		return 0; // not actually sure if return value is used for anything...?
+	}
+};
+std::vector<ViperBullet *> bullets = viper->getBullets();
+for(std::vector<ViperBullet *>::iterator iter = bullets.begin(); iter != bullets.end(); iter++)
+{
+	ContactBulletCallback callback(*(*iter)->getCollisionObject(), (*iter), m_FrameEvent);
+	mWorld->contactTest((*iter)->getCollisionObject(),callback);
+}
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -550,8 +678,13 @@ void GameState::destroyDeadVipers()
 	std::vector<Viper *>::iterator it;
 	 for(it = vipers.begin(); it != vipers.end(); it++)
 	{
-		if((*it)->getLife() <=0 || ((*it)->getLastCollidedWith() != (*it)->getCollisionObject() && TeamManagerCounter::getViperByCollisionObject((*it)->getLastCollidedWith())->getLife() <= 0) )
+		if((*it)->getLife() <=0) 
 			vipersToDestroy.push_back((*it));
+		else if((*it)->getLastCollidedWith() != (*it)->getCollisionObject() && TeamManagerCounter::getViperByCollisionObject((*it)->getLastCollidedWith())) 
+		{
+			if(TeamManagerCounter::getViperByCollisionObject((*it)->getLastCollidedWith())->getLife() <= 0)
+				vipersToDestroy.push_back((*it));
+		}
 	 }
 	  for(it = vipersToDestroy.begin(); it != vipersToDestroy.end(); it++)
 	{

@@ -8,6 +8,12 @@ enum CollisionShapes
 	BOX,
 	SPHERE
 };
+enum CollisionMasks
+{
+	COL_VIPER = 1<<0,
+	COL_VIPERBULLET = 1<<1,
+	COL_OTHER = 1<<2
+};
 class MyEntity
 {
 public:
@@ -15,8 +21,8 @@ public:
 	MyEntity(std::string meshFileName, Ogre::SceneManager *sceneMgr, btCollisionWorld * world, Ogre::Vector3 position = Ogre::Vector3::ZERO ,CollisionShapes shape = CONVEX );
 	//MyEntity(std::string meshFileName,Ogre::SceneManager * sceneMgr, btCollisionWorld * world, Ogre::SceneNode * parentSceneNode ,CollisionShapes shape);
 	
-	void transform(btTransform * trans);
-	void transform(Ogre::Quaternion, Ogre::Vector3);
+	//virtual void transform(btTransform * trans);
+	virtual void transform(Ogre::Quaternion, Ogre::Vector3);
 	Ogre::SceneNode * getSceneNode() { return mSceneNode;}
 	Ogre::Entity * getEntity() {return mEntity;}
 	void setScale(Ogre::Vector3 scale);
@@ -30,6 +36,7 @@ private:
 	Ogre::SceneManager * mSceneMgr;
 	btCollisionWorld * mWorld;
 	friend class Viper;
+	friend class ViperBullet;
 protected:
 	virtual ~MyEntity();
 };

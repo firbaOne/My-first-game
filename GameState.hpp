@@ -103,6 +103,7 @@ private:
 	Ogre::Quaternion * playerQuat;
 	TeamManager * team1; // player team
 	TeamManager * team2; // enemy team
+	bool playerShooting;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

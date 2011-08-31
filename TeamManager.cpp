@@ -21,6 +21,13 @@ void TeamManager::addViper(Ogre::Vector3 position, std::string name)
 {
 	/*viper->getEntity()->setMaterialName(mMaterial);
 	viper->setTeam(this);*/
+	if(name == "") 
+	{
+		name = mName;
+		char txt[10] = "";
+		sprintf(txt, "%d", mVipers.size());
+		name.append(txt);
+	}
 	Viper * viper = new Viper(mSceneMgr, mWorld, this,   position, mMaterial, name);
 	mVipers.push_back(viper);
 	TeamManagerCounter::addViper(viper);
@@ -79,6 +86,13 @@ Viper * TeamManager::getViperByName(std::string name)
 	}
 
 	return false;
+}
+TeamManager::~TeamManager()
+{
+	destroyAllVipers();
+	mState = 0;
+	mWorld = 0;
+	mSceneMgr = 0;
 }
 Viper * TeamManagerCounter::getViperByName(std::string name)
 {

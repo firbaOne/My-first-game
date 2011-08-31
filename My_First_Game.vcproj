@@ -234,6 +234,10 @@
 				RelativePath=".\Viper.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\ViperBullet.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -306,6 +310,10 @@
 			</File>
 			<File
 				RelativePath=".\Viper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ViperBullet.h"
 				>
 			</File>
 		</Filter>
