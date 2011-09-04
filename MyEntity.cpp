@@ -42,6 +42,14 @@ void MyEntity::transform(Ogre::Quaternion  q, Ogre::Vector3  v)
 	mColObject->setWorldTransform(btTransform(BtOgre::Convert::toBullet(mSceneNode->_getDerivedOrientation()), BtOgre::Convert::toBullet(mSceneNode->_getDerivedPosition())));
 
 }
+btTransform MyEntity::getNewWorldTransform(Ogre::Quaternion  q, Ogre::Vector3  v)
+{
+
+	/*mSceneNode->translate(v, Ogre::Node::TransformSpace::TS_WORLD);
+	mSceneNode->rotate(q, Ogre::Node::TransformSpace::TS_WORLD);*/
+	return btTransform(BtOgre::Convert::toBullet(mSceneNode->_getDerivedOrientation()), BtOgre::Convert::toBullet(mSceneNode->_getDerivedPosition() + v));
+
+}
 void MyEntity::setScale(Ogre::Vector3 scale)
 {
 	mSceneNode->setScale(scale);

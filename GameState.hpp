@@ -75,9 +75,11 @@ private:
 	void generateEnvironment();
 	void checkCollisions();
 	void checkCollisionForViper(Viper * viper);
+	void checkBulletsCollisionForViper(Viper * viper);
 	void destroyDeadVipers();
 	void destroyViper(Viper * viper);
 	void updateAllVipers();
+	void checkAllBulletsCollisions(const Ogre::FrameEvent& evt);
 #ifdef DEBUG
 	bool						m_bSettingsMode; /* I will use it as Debug Mode */
 #endif

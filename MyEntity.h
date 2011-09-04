@@ -23,6 +23,7 @@ public:
 	
 	//virtual void transform(btTransform * trans);
 	virtual void transform(Ogre::Quaternion, Ogre::Vector3);
+	btTransform getNewWorldTransform(Ogre::Quaternion, Ogre::Vector3);
 	Ogre::SceneNode * getSceneNode() { return mSceneNode;}
 	Ogre::Entity * getEntity() {return mEntity;}
 	void setScale(Ogre::Vector3 scale);
