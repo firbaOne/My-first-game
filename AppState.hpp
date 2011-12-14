@@ -11,7 +11,7 @@ class AppState;
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
-class AppStateListener
+class 
 {
 public:
 	AppStateListener(){};
